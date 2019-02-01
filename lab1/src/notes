@@ -1,0 +1,55 @@
+240500FF
+001001 00000 00101 00000000 11111111
+
+I type
+
+opcode is 001111
+rs is 0b00000 or 0x0
+rt is 0b00011 or 0x3
+immediate is 0x1000
+
+
+ADD
+ADDU
+ADDI - started, not done
+ADDIU - handled, hopefully it overflows correctly?
+SUB
+SUBU
+MULT
+MULTU
+DIV
+DIVU
+AND
+ANDI
+OR
+ORI
+XOR
+XORI
+NOR
+SLT
+SLTI
+SLL
+SRL
+SRA
+LW
+LB
+LH
+LUI - handled
+SW
+SB
+SH
+MFHI
+MFLO
+MTHI
+MTLO
+BEQ
+BNE
+BLEZ
+BLTZ
+BGEZ
+BGTZ
+J
+JR
+JAL
+JALR
+SYSCALL
