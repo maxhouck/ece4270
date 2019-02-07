@@ -84,6 +84,11 @@ void print_instruction(uint32_t);
 /* added functions                                                                                               */
 /***************************************************************/
 
+typedef struct r_type_structure {
+  uint8_t rs, rt, rd, shamt;
+} r_type_struct;
+
+r_type_struct parse_r_type(uint32_t instruction);
 
 typedef struct i_type_structure {
   uint16_t immediate;

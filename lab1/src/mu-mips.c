@@ -315,23 +315,94 @@ void handle_instruction()
 
 	//check for i or j or r type
 	printf("%x\n", instruction);
-	uint8_t opcode = (instruction & 0xFC000000) >> 24;
-	printf("%x\n", opcode);
+	uint8_t opcode = (instruction & 0xFC000000) >> 26;
 
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
-		opcode = instruction & 0x00000001F; //switch opcode to the last 5 binary digits of instruction
+		opcode = instruction & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 		switch(opcode) {
-		//a bunch of stuff
+			case 0b000000: { //SLL
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] << rstruct.shamt;
+				break;
+			}
+			case 0b000010: { //SRL
+				r_type_struct rstruct = parse_r_type(instruction);
+				printf("%x\n", rstruct.rd);
+				printf("%x\n", rstruct.rt);
+				printf("%x\n", rstruct.shamt);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
+				break;
+			}
+			case 0b011000: { //MULT
+				r_type_struct rstruct = parse_r_type(instruction);
+				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
+				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
+				if(rt >> 31) {	// then negative number
+					rt = 0xFFFFFFFF00000000 | rt; //sign extend with 1's
+				}
+				if(rs >> 31) {	// then negative number
+					rs = 0xFFFFFFFF00000000 | rs; //sign extend with 1's
+				}
+				uint64_t result = rt * rs;
+				NEXT_STATE.LO = (result); //low bit
+				NEXT_STATE.HI = (result) >> 32; //high part
+				break;
+			}
+			case 0b011001: { //MULTU
+				r_type_struct rstruct = parse_r_type(instruction);
+				uint64_t result = CURRENT_STATE.REGS[rstruct.rt] * CURRENT_STATE.REGS[rstruct.rs];
+				uint32_t hi = result >> 32;
+				printf("%x\n", hi);
+				NEXT_STATE.LO = (result);// & 0xFFFFFFFF; //low bit
+				NEXT_STATE.HI = (result) >> 32; //high part
+				break;
+			}
+			case 0b100000: { //ADD
+				r_type_struct rstruct = parse_r_type(instruction);
+				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
+				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
+				if (bit30carry == bit31carry) //check for overflow exception
+					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+				break;
+			}
+			case 0b100001: { //ADDIU
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+				break;
+			}
+			case 0b100010: { //SUB
+				r_type_struct rstruct = parse_r_type(instruction);
+				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
+				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
+				if (bit30carry == bit31carry) //check for overflow exception
+					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			case 0b100011: { //SUBU
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			default: {
+				printf("this instruction has not been handled\t");
+			}
 		}
 	}
 	else { //if opcode is anything else this is an I or J type instruction
 		switch(opcode) {
-			case 0b001000: { //ADDI 001000
+			case 0b001000: { //ADDI 001000 (for signed ints)
 				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = istruct.immediate + CURRENT_STATE.REGS[istruct.rs];
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
+				uint8_t bit30carry = (((immediate >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 30))) >> 1;
+				uint8_t bit31carry = (((immediate >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 31))) >> 1; //check for overflow
+				if (bit30carry == bit31carry) //check for overflow exception
+					NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
 				break;
 			}
-			case 0b001001: { //ADDIU 001001
+			case 0b001001: { //ADDIU 001001 (for unsigned ints)
 				i_type_struct istruct = parse_i_type(instruction);
 				NEXT_STATE.REGS[istruct.rt] = istruct.immediate + CURRENT_STATE.REGS[istruct.rs];
 				break;
@@ -357,6 +428,15 @@ i_type_struct parse_i_type(uint32_t instruction) {
 	istruct.rt = (instruction & 0x001F0000) >> 16;
 	istruct.rs = (instruction & 0x03E00000) >> 21;
 	return istruct;
+}
+
+r_type_struct parse_r_type(uint32_t instruction) {
+	r_type_struct rstruct;
+	rstruct.rs = (instruction & 0x03E00000) >> 21;
+	rstruct.rt = (instruction & 0x001F0000) >> 16;
+	rstruct.rd = (instruction & 0x0000F800) >> 11;
+	rstruct.shamt = (instruction & 0x000007C0) >> 6;
+	return rstruct;
 }
 
 

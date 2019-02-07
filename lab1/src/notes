@@ -1,7 +1,10 @@
 240500FF
-001001 00000 00101 00000000 11111111
-
+001001 00101 00101 00000000 11111111
 I type
+
+
+000000 00000 00001 00001 10000 000010
+rtype
 
 opcode is 001111
 rs is 0b00000 or 0x0
@@ -9,14 +12,55 @@ rt is 0b00011 or 0x3
 immediate is 0x1000
 
 
-ADD
-ADDU
-ADDI - started, not done
-ADDIU - handled, hopefully it overflows correctly?
-SUB
-SUBU
-MULT
-MULTU
+     1010
+1111 1111
+
+3C031000 // LUI load 0x1000 into upper of register 3
+240500FF //ADDIU add 00FF with register 0 and store in 5
+200500FF //ADDI add 00FF with register 0 and store in 5
+2005FFFF //ADDI add FFFF with register 0 and store in 5
+A53020
+C63820
+24E87530
+AC650000
+AC660004
+AC670008
+AC68000C
+8C690000
+8C6A0004
+8C6B0008
+8C6C000C
+24630004
+AC650000
+AC660004
+AC670008
+AC68000C
+8C6DFFFC
+8C6E0000
+8C6F0004
+8C700008
+98820
+22A8820
+22B8820
+22C8820
+22D8820
+22E8820
+22F8820
+2308820
+2402000A
+C
+
+
+
+
+ADD - handled
+ADDU - handled
+ADDI - handled
+ADDIU - handled
+SUB - handled
+SUBU - handled
+MULT - needs testing. doesn't work if result is over 32 bits. also need to test negative numbers
+MULTU - needs testing
 DIV
 DIVU
 AND
@@ -28,8 +72,8 @@ XORI
 NOR
 SLT
 SLTI
-SLL
-SRL
+SLL - done
+SRL - done
 SRA
 LW
 LB
