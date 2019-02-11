@@ -469,6 +469,112 @@ void print_program(){
 /************************************************************/
 void print_instruction(uint32_t addr){
 	/*IMPLEMENT THIS*/
+
+
+	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
+	//printf("Test1\n");
+
+	NEXT_STATE = CURRENT_STATE;
+	NEXT_STATE.PC = NEXT_STATE.PC + sizeof(uint32_t);
+
+	//read first instruction from memory
+	uint32_t instruction = mem_read_32(addr);
+
+	//check for i or j or r type
+	printf("%x\n", instruction);
+	uint8_t opcode = (instruction & 0xFC000000) >> 26;
+
+	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
+		opcode = instruction & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+		switch(opcode) {
+			case 0b000000: { //SLL
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("SLL %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+				break;
+			}
+			case 0b000010: { //SRL
+				r_type_struct rstruct = parse_r_type(instruction);
+		
+				printf("SRL %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+
+				break;
+			}
+			case 0b011000: { //MULT
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MULT %x, %x\n", rstruct.rs, rstruct.rt);
+
+
+				break;
+			}
+			case 0b011001: { //MULTU
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MULTU %x, %x\n", rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100000: { //ADD
+				r_type_struct rstruct = parse_r_type(instruction);
+
+
+				printf("ADD %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100001: { //ADDIU
+				//r_type_struct rstruct = parse_r_type(instruction);
+				//NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+
+				//printf("ADDIU %x, %x, %x\n", rstruct.rt, rstruct.rs);
+
+				//is this ADDIU or something else?
+				break;
+			}
+			case 0b100010: { //SUB
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("SUB %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100011: { //SUBU
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("SUBU %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			default: {
+				printf("this instruction has not been handled\t");
+			}
+		}
+	}
+	else { //if opcode is anything else this is an I or J type instruction
+		switch(opcode) {
+			case 0b001000: { //ADDI 001000 (for signed ints)
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("ADDI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b001001: { //ADDIU 001001 (for unsigned ints)
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("ADDIU %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b001111: { //LUI 001111
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("LUI %x, %x\n", istruct.rt, istruct.immediate);
+				break;
+			}
+
+
+			default: {
+				printf("this instruction has not been handled\t");
+			}
+		}
+	}
+
 }
 
 /***************************************************************/
