@@ -521,13 +521,10 @@ void print_instruction(uint32_t addr){
 				printf("ADD %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
-			case 0b100001: { //ADDIU
-				//r_type_struct rstruct = parse_r_type(instruction);
-				//NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+			case 0b100001: { //ADDU
+				r_type_struct rstruct = parse_r_type(instruction);
 
-				//printf("ADDIU %x, %x, %x\n", rstruct.rt, rstruct.rs);
-
-				//is this ADDIU or something else?
+				printf("ADDU %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100010: { //SUB
@@ -542,8 +539,56 @@ void print_instruction(uint32_t addr){
 				printf("SUBU %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
+			case 0b011010: { //DIV
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("DIV %x, %x\n", rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b011011: { //DIVU
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("DIVU %x, %x\n", rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100100: { //AND
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("AND %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100101: { //OR
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("OR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100110: { //XOR
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("XOR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b100111: { //NOR
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("NOR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b101010: { //SLT
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("SLT %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				break;
+			}
+			case 0b000011: { //SRA
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("SRA %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+				break;
+			}
 			default: {
-				printf("this instruction has not been handled\t");
+				printf("this instruction has not been handled\n");
 			}
 		}
 	}
@@ -567,10 +612,34 @@ void print_instruction(uint32_t addr){
 				printf("LUI %x, %x\n", istruct.rt, istruct.immediate);
 				break;
 			}
+			case 0b001100: { //ANDI 001100
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("ANDI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b001101: { //ORI 001101
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("ORI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b001110: { //XORI 001110
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("XORI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b001010: { //SLTI 001010
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("SLTI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
 
 
 			default: {
-				printf("this instruction has not been handled\t");
+				printf("this instruction has not been handled\n");
 			}
 		}
 	}
