@@ -587,6 +587,30 @@ void print_instruction(uint32_t addr){
 				printf("SRA %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
 				break;
 			}
+			case 0b010000: { //MFHI
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MFHI %x\n", rstruct.rd);
+				break;
+			}
+			case 0b010010: { //MFLO
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MFLO %x\n", rstruct.rd);
+				break;
+			}
+			case 0b010001: { //MTHI
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MTHI %x\n", rstruct.rs);
+				break;
+			}
+			case 0b010011: { //MTLO
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("MTLO %x\n", rstruct.rs);
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\n");
 			}
@@ -634,6 +658,42 @@ void print_instruction(uint32_t addr){
 				i_type_struct istruct = parse_i_type(instruction);
 
 				printf("SLTI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b100011: { //LW 100011
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("LW %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				break;
+			}
+			case 0b100000: { //LB 100000
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("LB %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				break;
+			}
+			case 0b100001: { //LH 100001
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("LH %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				break;
+			}
+			case 0b101011: { //SW 101011
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("SW %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				break;
+			}
+			case 0b101000: { //SB 101000
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("SB %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				break;
+			}
+			case 0b101001: { //SH 101001
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("SH %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 
