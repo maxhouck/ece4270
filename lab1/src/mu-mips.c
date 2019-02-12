@@ -327,10 +327,17 @@ void handle_instruction()
 			}
 			case 0b000010: { //SRL
 				r_type_struct rstruct = parse_r_type(instruction);
-				printf("%x\n", rstruct.rd);
-				printf("%x\n", rstruct.rt);
-				printf("%x\n", rstruct.shamt);
 				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
+				break;
+			}
+			case 0b000011: { //SRA
+				r_type_struct rstruct = parse_r_type(instruction);
+				if(CURRENT_STATE.REGS[rstruct.rt] >> 15) {//if negative, sign extend
+					uint32_t extension = 0xFFFFFFFF << (32-rstruct.shamt);
+					NEXT_STATE.REGS[rstruct.rd] = extension | (CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt);
+				}
+				else //else same as SRL
+					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
 				break;
 			}
 			case 0b011000: { //MULT
@@ -383,6 +390,32 @@ void handle_instruction()
 				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
+			case 0b100100: {//AND
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] & CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			case 0b100101: {//OR
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] | CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			case 0b100110: {//XOR
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] ^ CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			case 0b100111: {//NOR
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = (~CURRENT_STATE.REGS[rstruct.rs]) & (~CURRENT_STATE.REGS[rstruct.rt]);
+				break;
+			}
+			case 0b101010: {//SLT
+				r_type_struct rstruct = parse_r_type(instruction);
+				uint32_t result = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rstruct.rd] = result < 0xF0000000 ? 0 : 1;
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
@@ -407,13 +440,104 @@ void handle_instruction()
 				NEXT_STATE.REGS[istruct.rt] = istruct.immediate + CURRENT_STATE.REGS[istruct.rs];
 				break;
 			}
-			case 0b001111: { //LUI 001111
+			case 0b001100: { //ANDI
+				i_type_struct istruct = parse_i_type(instruction);
+				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] & istruct.immediate;
+				break;
+			}
+			case 0b001101: { //ORI
+				i_type_struct istruct = parse_i_type(instruction);
+				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] | istruct.immediate;
+				break;
+			}
+			case 0b001110: { //XORI
+				i_type_struct istruct = parse_i_type(instruction);
+				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] ^ istruct.immediate;
+				break;
+			}
+			case 0b001111: { //LUI
 				i_type_struct istruct = parse_i_type(instruction);
 				NEXT_STATE.REGS[istruct.rt] = istruct.immediate << 16; //shift immediate and place into rt
 				break;
 			}
-
-
+			case 0b001010: { //SLTI
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
+				uint32_t result = CURRENT_STATE.REGS[istruct.rs] - immediate;
+				NEXT_STATE.REGS[istruct.rt] = result < 0xF0000000 ? 0 : 1;
+				break;
+			}
+			case 0b100000: { //LB
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				uint32_t byte = 0xFF & mem_read_32(address);
+				if(byte >> 7) {	// then negative number
+					byte = (0xFFFFFF00 | byte); //sign extend with 1's
+				}
+				NEXT_STATE.REGS[istruct.rt] = byte;
+				break;
+			}
+			case 0b100001: { //LH
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				uint32_t halfword = 0xFFFF & mem_read_32(address);
+				if(halfword >> 15) {	// then negative number
+					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
+				}
+				NEXT_STATE.REGS[istruct.rt] = halfword;
+				break;
+			}
+			case 0b100011: { //LW
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				NEXT_STATE.REGS[istruct.rt] = mem_read_32(address);
+				break;
+			}
+			case 0b101000: { //SB
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFF);
+				break;
+			}
+			case 0b101001: { //SH
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFFFF);
+				break;
+			}
+			case 0b101011: { //SW
+				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t address = istruct.offset;
+				if(address >> 15) {	// then negative number
+					address = 0xFFFF0000 | address; //sign extend with 1's
+				}
+				address += CURRENT_STATE.REGS[istruct.base];
+				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt]);
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
@@ -427,6 +551,8 @@ i_type_struct parse_i_type(uint32_t instruction) {
 	istruct.immediate = instruction & 0xFFFF;
 	istruct.rt = (instruction & 0x001F0000) >> 16;
 	istruct.rs = (instruction & 0x03E00000) >> 21;
+	istruct.offset = istruct.immediate;
+	istruct.base = istruct.rs;
 	return istruct;
 }
 
@@ -501,7 +627,7 @@ void print_instruction(uint32_t addr){
 			}
 			case 0b000010: { //SRL
 				r_type_struct rstruct = parse_r_type(instruction);
-		
+
 				printf("SRL %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
 
 				break;

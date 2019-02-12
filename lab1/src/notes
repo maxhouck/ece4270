@@ -1,19 +1,57 @@
 240500FF
-001001 00101 00101 00000000 11111111
+100011 00000 00000 00000100 00000000
 I type
 
 
-000000 00000 00001 00001 10000 000010
+00011024
+000000 00000 00001 00010 00010 000011
 rtype
 
-opcode is 001111
-rs is 0b00000 or 0x0
-rt is 0b00011 or 0x3
-immediate is 0x1000
+ADD - done
+ADDU - done
+ADDI - done
+ADDIU - done
+SUB - done
+SUBU - done
+MULT - needs testing. doesn't work if result is over 32 bits. also need to test negative numbers
+MULTU - needs testing
+DIV
+DIVU
+AND - done
+ANDI - done
+OR - done
+ORI - done
+XOR - done
+XORI - done
+NOR - done
+SLT - done, not tested
+SLTI - done, not tested
+SLL - done
+SRL - done
+SRA - done
+LW - done exception not handled. do we need to handle these?
+LB - done
+LH - done
+LUI - done
+SW - done, exception not handled, needs testing.
+SB - done, exception not handled, needs testing.
+SH - done, exception not handled, needs testing.
+MFHI
+MFLO
+MTHI
+MTLO
+BEQ
+BNE
+BLEZ
+BLTZ
+BGEZ
+BGTZ
+J
+JR
+JAL
+JALR
+SYSCALL
 
-
-     1010
-1111 1111
 
 3C031000 // LUI load 0x1000 into upper of register 3
 240500FF //ADDIU add 00FF with register 0 and store in 5
@@ -49,51 +87,3 @@ AC68000C
 2308820
 2402000A
 C
-
-
-
-
-ADD - handled
-ADDU - handled
-ADDI - handled
-ADDIU - handled
-SUB - handled
-SUBU - handled
-MULT - needs testing. doesn't work if result is over 32 bits. also need to test negative numbers
-MULTU - needs testing
-DIV
-DIVU
-AND
-ANDI
-OR
-ORI
-XOR
-XORI
-NOR
-SLT
-SLTI
-SLL - done
-SRL - done
-SRA
-LW
-LB
-LH
-LUI - handled
-SW
-SB
-SH
-MFHI
-MFLO
-MTHI
-MTLO
-BEQ
-BNE
-BLEZ
-BLTZ
-BGEZ
-BGTZ
-J
-JR
-JAL
-JALR
-SYSCALL

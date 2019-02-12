@@ -6,8 +6,8 @@
 /******************************************************************************/
 /* MIPS memory layout                                                                                                                                      */
 /******************************************************************************/
-#define MEM_TEXT_BEGIN  0x00400000
-#define MEM_TEXT_END      0x0FFFFFFF
+#define MEM_TEXT_BEGIN  0x04000000 //Max Houck changed this - I think it was given to us with the wrong value
+#define MEM_TEXT_END    0x0FFFFFFF
 /*Memory address 0x10000000 to 0x1000FFFF access by $gp*/
 #define MEM_DATA_BEGIN  0x10010000
 #define MEM_DATA_END   0x7FFFFFFF
@@ -91,14 +91,14 @@ typedef struct r_type_structure {
 r_type_struct parse_r_type(uint32_t instruction);
 
 typedef struct i_type_structure {
-  uint16_t immediate;
-  uint8_t rs, rt;
+  uint16_t immediate, offset; //these will be the same value, just renamed it for use with load commands
+  uint8_t rs, rt, base;
 } i_type_struct;
-
-i_type_struct parse_i_type(uint32_t instruction);
 
 typedef struct j_type_structure {
 	uint32_t target;
 } j_type_struct;
 
+i_type_struct parse_i_type(uint32_t instruction);
+r_type_struct parse_r_type(uint32_t instruction);
 j_type_struct parse_j_type(uint32_t instruction);
