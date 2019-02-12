@@ -774,6 +774,9 @@ void print_instruction(uint32_t addr){
 		}
 	}
 
+	//do I need to handle the SYSCALL?
+	//ask if need to convert any register numbers to decimal - rs, rt, rd
+
 }
 
 /***************************************************************/
