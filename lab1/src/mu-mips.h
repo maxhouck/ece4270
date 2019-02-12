@@ -96,3 +96,9 @@ typedef struct i_type_structure {
 } i_type_struct;
 
 i_type_struct parse_i_type(uint32_t instruction);
+
+typedef struct j_type_structure {
+	uint32_t target;
+} j_type_struct;
+
+j_type_struct parse_j_type(uint32_t instruction);

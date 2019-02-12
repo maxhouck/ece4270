@@ -439,6 +439,12 @@ r_type_struct parse_r_type(uint32_t instruction) {
 	return rstruct;
 }
 
+j_type_struct parse_j_type(uint32_t instruction) {
+	j_type_struct jstruct;
+	jstruct.target = (instruction & 0x3FFFFFF);
+	return jstruct;
+}
+
 
 /************************************************************/
 /* Initialize Memory                                                                                                    */
@@ -611,6 +617,19 @@ void print_instruction(uint32_t addr){
 				printf("MTLO %x\n", rstruct.rs);
 				break;
 			}
+			case 0b001000: { //JR 001000
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("JR %x\n", rstruct.rs);
+				break;
+			}
+			case 0b001001: { //JALR 001001
+				r_type_struct rstruct = parse_r_type(instruction);
+
+				printf("JALR %x\n", rstruct.rs);
+				printf("JALR %x, %x", rstruct.rd, rstruct.rs);
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\n");
 			}
@@ -696,6 +715,57 @@ void print_instruction(uint32_t addr){
 				printf("SH %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
+			case 0b000100: { //BEQ 000100
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("BEQ %x, %x, %x\n", istruct.rs, istruct.rt, istruct.immediate);
+				break;
+			}
+			case 0b000101: { //BNE 000101
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("BNE %x, %x, %x\n", istruct.rs, istruct.rt, istruct.immediate);
+				break;
+			}
+			case 0b000110: { //BLEZ 000110
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("BLEZ %x, %x\n", istruct.rs, istruct.immediate);
+				break;
+			}
+
+			case 0b000001: { //REGIMM 000001
+				i_type_struct istruct = parse_i_type(instruction);
+
+				if(istruct.rt == 0b00000)//BLTZ
+				{
+					printf("BLTZ %x, %x\n", istruct.rs, istruct.immediate);
+				}
+				else //BGEZ rt == 0b00001
+				{
+					printf("BGEZ %x, %x\n", istruct.rs, istruct.immediate);
+				}
+				break;
+			}
+			case 0b000111: { //BGTZ 000111
+				i_type_struct istruct = parse_i_type(instruction);
+
+				printf("BGTZ %x, %x\n", istruct.rs, istruct.immediate);
+				break;
+			}
+			case 0b000010: { //J 000010
+				j_type_struct jstruct = parse_j_type(instruction);
+
+				printf("J %x\n", jstruct.target);
+				break;
+			}
+			case 0b000011: { //JAL 000011
+				j_type_struct jstruct = parse_j_type(instruction);
+
+				printf("JAL %x\n", jstruct.target);
+				break;
+			}
+
 
 
 			default: {
