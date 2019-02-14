@@ -332,7 +332,7 @@ void handle_instruction()
 			}
 			case 0b000011: { //SRA
 				r_type_struct rstruct = parse_r_type(instruction);
-				if(CURRENT_STATE.REGS[rstruct.rt] >> 15) {//if negative, sign extend
+				if(CURRENT_STATE.REGS[rstruct.rt] >> 31) {//if negative, sign extend
 					uint32_t extension = 0xFFFFFFFF << (32-rstruct.shamt);
 					NEXT_STATE.REGS[rstruct.rd] = extension | (CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt);
 				}
