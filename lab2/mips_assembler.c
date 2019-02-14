@@ -48,6 +48,7 @@ char* parse_file() {
 //parse one line
 uint32_t parse_instruction(char* line)
 {
+	uint32_t machine_instruction;
 	char *instruction, *arg1, *arg2, *arg3;
 	const char s[2] = " ";
 	instruction = strtok(line, s);
@@ -80,7 +81,7 @@ uint32_t parse_instruction(char* line)
 	}
 	else if(strcmp(instruction, "ADDU") == 0)
 	{
-		//do something
+		//do something[20]
 	}
 	else if(strcmp(instruction, "SUB") == 0)
 	{
@@ -234,6 +235,7 @@ uint32_t parse_instruction(char* line)
 	{
 		printf("Instruction not handled\n");
 	}
+	return machine_instruction;
 }
 
 void write_file(uint32_t machine_instruction) {
