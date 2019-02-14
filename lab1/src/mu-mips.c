@@ -434,6 +434,21 @@ void handle_instruction()
 				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.HI;
 				break;
 			}
+			case 0b010010: { //MFLO
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.LO;
+				break;
+			}
+			case 0b010001: { //MTHI
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs];
+				break;
+			}
+			case 0b010011: { //MTLO
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs];
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
