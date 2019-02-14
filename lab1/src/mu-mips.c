@@ -606,14 +606,11 @@ void print_instruction(uint32_t addr){
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 	//printf("Test1\n");
 
-	NEXT_STATE = CURRENT_STATE;
-	NEXT_STATE.PC = NEXT_STATE.PC + sizeof(uint32_t);
-
 	//read first instruction from memory
 	uint32_t instruction = mem_read_32(addr);
 
 	//check for i or j or r type
-	printf("%x\n", instruction);
+	//printf("%x\n", instruction);
 	uint8_t opcode = (instruction & 0xFC000000) >> 26;
 
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -622,20 +619,20 @@ void print_instruction(uint32_t addr){
 			case 0b000000: { //SLL
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SLL %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+				printf("SLL %d, %d, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
 				break;
 			}
 			case 0b000010: { //SRL
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SRL %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+				printf("SRL %d, %d, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
 
 				break;
 			}
 			case 0b011000: { //MULT
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MULT %x, %x\n", rstruct.rs, rstruct.rt);
+				printf("MULT %d, %d\n", rstruct.rs, rstruct.rt);
 
 
 				break;
@@ -643,117 +640,122 @@ void print_instruction(uint32_t addr){
 			case 0b011001: { //MULTU
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MULTU %x, %x\n", rstruct.rs, rstruct.rt);
+				printf("MULTU %d, %d\n", rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100000: { //ADD
 				r_type_struct rstruct = parse_r_type(instruction);
 
 
-				printf("ADD %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("ADD %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100001: { //ADDU
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("ADDU %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("ADDU %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100010: { //SUB
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SUB %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("SUB %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100011: { //SUBU
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SUBU %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("SUBU %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b011010: { //DIV
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("DIV %x, %x\n", rstruct.rs, rstruct.rt);
+				printf("DIV %d, %d\n", rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b011011: { //DIVU
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("DIVU %x, %x\n", rstruct.rs, rstruct.rt);
+				printf("DIVU %d, %d\n", rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100100: { //AND
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("AND %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("AND %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100101: { //OR
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("OR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("OR %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100110: { //XOR
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("XOR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("XOR %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b100111: { //NOR
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("NOR %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("NOR %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b101010: { //SLT
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SLT %x, %x, %x\n", rstruct.rd, rstruct.rs, rstruct.rt);
+				printf("SLT %d, %d, %d\n", rstruct.rd, rstruct.rs, rstruct.rt);
 				break;
 			}
 			case 0b000011: { //SRA
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("SRA %x, %x, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
+				printf("SRA %d, %d, %x\n", rstruct.rd, rstruct.rt, rstruct.shamt);
 				break;
 			}
 			case 0b010000: { //MFHI
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MFHI %x\n", rstruct.rd);
+				printf("MFHI %d\n", rstruct.rd);
 				break;
 			}
 			case 0b010010: { //MFLO
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MFLO %x\n", rstruct.rd);
+				printf("MFLO %d\n", rstruct.rd);
 				break;
 			}
 			case 0b010001: { //MTHI
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MTHI %x\n", rstruct.rs);
+				printf("MTHI %d\n", rstruct.rs);
 				break;
 			}
 			case 0b010011: { //MTLO
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("MTLO %x\n", rstruct.rs);
+				printf("MTLO %d\n", rstruct.rs);
 				break;
 			}
 			case 0b001000: { //JR 001000
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("JR %x\n", rstruct.rs);
+				printf("JR %d\n", rstruct.rs);
 				break;
 			}
 			case 0b001001: { //JALR 001001
 				r_type_struct rstruct = parse_r_type(instruction);
 
-				printf("JALR %x\n", rstruct.rs);
-				printf("JALR %x, %x", rstruct.rd, rstruct.rs);
+				printf("JALR %d\n", rstruct.rs);
+				printf("JALR %d, %d", rstruct.rd, rstruct.rs);
+				break;
+			}
+			case 0x0C: { //SYSTEMCALL
+
+				printf("SYSCALL\n");
 				break;
 			}
 			default: {
@@ -766,97 +768,97 @@ void print_instruction(uint32_t addr){
 			case 0b001000: { //ADDI 001000 (for signed ints)
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("ADDI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("ADDI %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b001001: { //ADDIU 001001 (for unsigned ints)
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("ADDIU %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("ADDIU %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b001111: { //LUI 001111
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("LUI %x, %x\n", istruct.rt, istruct.immediate);
+				printf("LUI %d, %x\n", istruct.rt, istruct.immediate);
 				break;
 			}
 			case 0b001100: { //ANDI 001100
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("ANDI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("ANDI %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b001101: { //ORI 001101
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("ORI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("ORI %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b001110: { //XORI 001110
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("XORI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("XORI %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b001010: { //SLTI 001010
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("SLTI %x, %x, %x\n", istruct.rt, istruct.rs, istruct.immediate);
+				printf("SLTI %d, %d, %x\n", istruct.rt, istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b100011: { //LW 100011
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("LW %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("LW %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b100000: { //LB 100000
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("LB %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("LB %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b100001: { //LH 100001
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("LH %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("LH %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b101011: { //SW 101011
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("SW %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("SW %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b101000: { //SB 101000
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("SB %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("SB %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b101001: { //SH 101001
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("SH %x, %x(%x)\n", istruct.rt, istruct.immediate, istruct.rs);
+				printf("SH %d, %x(%d)\n", istruct.rt, istruct.immediate, istruct.rs);
 				break;
 			}
 			case 0b000100: { //BEQ 000100
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("BEQ %x, %x, %x\n", istruct.rs, istruct.rt, istruct.immediate);
+				printf("BEQ %d, %d, %x\n", istruct.rs, istruct.rt, istruct.immediate);
 				break;
 			}
 			case 0b000101: { //BNE 000101
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("BNE %x, %x, %x\n", istruct.rs, istruct.rt, istruct.immediate);
+				printf("BNE %d, %d, %x\n", istruct.rs, istruct.rt, istruct.immediate);
 				break;
 			}
 			case 0b000110: { //BLEZ 000110
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("BLEZ %x, %x\n", istruct.rs, istruct.immediate);
+				printf("BLEZ %d, %x\n", istruct.rs, istruct.immediate);
 				break;
 			}
 
@@ -865,18 +867,18 @@ void print_instruction(uint32_t addr){
 
 				if(istruct.rt == 0b00000)//BLTZ
 				{
-					printf("BLTZ %x, %x\n", istruct.rs, istruct.immediate);
+					printf("BLTZ %d, %x\n", istruct.rs, istruct.immediate);
 				}
 				else //BGEZ rt == 0b00001
 				{
-					printf("BGEZ %x, %x\n", istruct.rs, istruct.immediate);
+					printf("BGEZ %d, %x\n", istruct.rs, istruct.immediate);
 				}
 				break;
 			}
 			case 0b000111: { //BGTZ 000111
 				i_type_struct istruct = parse_i_type(instruction);
 
-				printf("BGTZ %x, %x\n", istruct.rs, istruct.immediate);
+				printf("BGTZ %d, %x\n", istruct.rs, istruct.immediate);
 				break;
 			}
 			case 0b000010: { //J 000010
@@ -900,8 +902,6 @@ void print_instruction(uint32_t addr){
 		}
 	}
 
-	//do I need to handle the SYSCALL?
-	//ask if need to convert any register numbers to decimal - rs, rt, rd
 
 }
 
