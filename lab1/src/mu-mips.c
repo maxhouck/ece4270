@@ -590,6 +590,30 @@ void handle_instruction()
 				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt]);
 				break;
 			}
+			case 0b000100: { //BEQ 000100
+				i_type_struct istruct = parse_i_type(instruction);
+				if(CURRENT_STATE.REGS[istruct.rs] == CURRENT_STATE.REGS[istruct.rt])
+				{
+					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+				}
+				break;
+			}
+			case 0b000101: { //BNE 000101
+				i_type_struct istruct = parse_i_type(instruction);
+				if(CURRENT_STATE.REGS[istruct.rs] != CURRENT_STATE.REGS[istruct.rt])
+				{
+					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+				} 
+				break;
+			}
+			case 0b000110: { //BLEZ 000110
+				i_type_struct istruct = parse_i_type(instruction);
+				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 || (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000) //I'm not sure if this is right
+				{
+					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+				}
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
