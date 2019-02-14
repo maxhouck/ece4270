@@ -357,9 +357,9 @@ void handle_instruction()
 			}
 			case 0b011001: { //MULTU
 				r_type_struct rstruct = parse_r_type(instruction);
-				uint64_t result = CURRENT_STATE.REGS[rstruct.rt] * CURRENT_STATE.REGS[rstruct.rs];
-				uint32_t hi = result >> 32;
-				printf("%x\n", hi);
+				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
+				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
+				uint64_t result = rt*rs;
 				NEXT_STATE.LO = (result);// & 0xFFFFFFFF; //low bit
 				NEXT_STATE.HI = (result) >> 32; //high part
 				break;
@@ -424,9 +424,8 @@ void handle_instruction()
 			}
 			case 0b011011: { //DIVU
 				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = (0x0 || CURRENT_STATE.REGS[rstruct.rs]) / (0x0 || CURRENT_STATE.REGS[rstruct.rt]);
-				NEXT_STATE.HI = (0X0 || CURRENT_STATE.REGS[rstruct.rs]) % (0x0 || CURRENT_STATE.REGS[rstruct.rt]);
-				//This is probably wrong
+				NEXT_STATE.LO = (CURRENT_STATE.REGS[rstruct.rs]) / (CURRENT_STATE.REGS[rstruct.rt]);
+				NEXT_STATE.HI = (CURRENT_STATE.REGS[rstruct.rs]) % (CURRENT_STATE.REGS[rstruct.rt]);
 				break;
 			}
 			case 0b010000: { //MFHI
@@ -489,7 +488,11 @@ void handle_instruction()
 			}
 			case 0b001001: { //ADDIU 001001 (for unsigned ints)
 				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = istruct.immediate + CURRENT_STATE.REGS[istruct.rs];
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
+				NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
 				break;
 			}
 			case 0b001100: { //ANDI
@@ -592,11 +595,11 @@ void handle_instruction()
 			}
 			case 0b000100: { //BEQ 000100
 				i_type_struct istruct = parse_i_type(instruction);
-				if(CURRENT_STATE.REGS[istruct.rs] == CURRENT_STATE.REGS[istruct.rt])
 				uint32_t immediate = istruct.immediate;
 				if(immediate >> 15) {	// then negative number
 					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
 				}
+				if(CURRENT_STATE.REGS[istruct.rs] == CURRENT_STATE.REGS[istruct.rt])
 				{
 					NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 				}

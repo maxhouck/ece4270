@@ -6,7 +6,7 @@
 /******************************************************************************/
 /* MIPS memory layout                                                                                                                                      */
 /******************************************************************************/
-#define MEM_TEXT_BEGIN  0x04000000 //Max Houck changed this - I think it was given to us with the wrong value
+#define MEM_TEXT_BEGIN  0x0400000
 #define MEM_TEXT_END    0x0FFFFFFF
 /*Memory address 0x10000000 to 0x1000FFFF access by $gp*/
 #define MEM_DATA_BEGIN  0x10010000
