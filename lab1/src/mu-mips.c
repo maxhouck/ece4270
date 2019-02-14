@@ -416,6 +416,24 @@ void handle_instruction()
 				NEXT_STATE.REGS[rstruct.rd] = result < 0xF0000000 ? 0 : 1;
 				break;
 			}
+			case 0b011010: { //DIV
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs] / CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs] % CURRENT_STATE.REGS[rstruct.rt];
+				break;
+			}
+			case 0b011011: { //DIVU
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.LO = (0x0 || CURRENT_STATE.REGS[rstruct.rs]) / (0x0 || CURRENT_STATE.REGS[rstruct.rt]);
+				NEXT_STATE.HI = (0X0 || CURRENT_STATE.REGS[rstruct.rs]) % (0x0 || CURRENT_STATE.REGS[rstruct.rt]);
+				//This is probably wrong
+				break;
+			}
+			case 0b010000: { //MFHI
+				r_type_struct rstruct = parse_r_type(instruction);
+				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.HI;
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
