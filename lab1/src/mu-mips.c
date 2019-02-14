@@ -608,10 +608,48 @@ void handle_instruction()
 			}
 			case 0b000110: { //BLEZ 000110
 				i_type_struct istruct = parse_i_type(instruction);
-				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 || (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000) //I'm not sure if this is right
+				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 || (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000)
 				{
 					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
 				}
+				break;
+			}
+			case 0b000001: { //REGIMM 000001
+				i_type_struct istruct = parse_i_type(instruction);
+
+				if(istruct.rt == 0b00000)//BLTZ
+				{
+					if((CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000)
+					{
+						NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+					}
+				}
+				else //BGEZ rt == 0b00001
+				{
+					if((CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x0)
+					{
+						NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+					}
+				}
+				break;
+			}
+			case 0b000111: { //BGTZ 000111
+				i_type_struct istruct = parse_i_type(instruction);
+				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 && (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x0)
+				{
+					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+				}
+				break;
+			}
+			case 0b000010: { //J 000010
+				j_type_struct jstruct = parse_j_type(instruction);
+				NEXT_STATE.PC = jstruct.target << 2;
+				break;
+			}
+			case 0b000011: { //JAL 000011
+				j_type_struct jstruct = parse_j_type(instruction);
+				NEXT_STATE.PC = jstruct.target << 2;
+				NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 8;
 				break;
 			}
 			default: {
