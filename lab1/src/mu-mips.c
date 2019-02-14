@@ -593,51 +593,70 @@ void handle_instruction()
 			case 0b000100: { //BEQ 000100
 				i_type_struct istruct = parse_i_type(instruction);
 				if(CURRENT_STATE.REGS[istruct.rs] == CURRENT_STATE.REGS[istruct.rt])
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
 				{
-					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+					NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 				}
 				break;
 			}
 			case 0b000101: { //BNE 000101
 				i_type_struct istruct = parse_i_type(instruction);
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
 				if(CURRENT_STATE.REGS[istruct.rs] != CURRENT_STATE.REGS[istruct.rt])
 				{
-					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
-				} 
+					NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
+				}
 				break;
 			}
 			case 0b000110: { //BLEZ 000110
 				i_type_struct istruct = parse_i_type(instruction);
-				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 || (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000)
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
+				if(CURRENT_STATE.REGS[istruct.rs] == 0x00000000 || (CURRENT_STATE.REGS[istruct.rs] >> 31))
 				{
-					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+					NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 				}
 				break;
 			}
 			case 0b000001: { //REGIMM 000001
 				i_type_struct istruct = parse_i_type(instruction);
-
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
 				if(istruct.rt == 0b00000)//BLTZ
 				{
-					if((CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x80000000)
+					if(CURRENT_STATE.REGS[istruct.rs] >> 31)
 					{
-						NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+						NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 					}
 				}
 				else //BGEZ rt == 0b00001
 				{
-					if((CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x0)
+					if(~(CURRENT_STATE.REGS[istruct.rs] >> 31))
 					{
-						NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+						NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 					}
 				}
 				break;
 			}
 			case 0b000111: { //BGTZ 000111
 				i_type_struct istruct = parse_i_type(instruction);
-				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 && (CURRENT_STATE.REGS[istruct.rs] | 0x80000000) == 0x0)
+				uint32_t immediate = istruct.immediate;
+				if(immediate >> 15) {	// then negative number
+					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
+				}
+				if(CURRENT_STATE.REGS[istruct.rs] != 0x00000000 && ~(CURRENT_STATE.REGS[istruct.rs] >> 31))
 				{
-					NEXT_STATE.PC = CURRENT_STATE.PC + (istruct.immediate << 2);
+					NEXT_STATE.PC = CURRENT_STATE.PC + (immediate << 2);
 				}
 				break;
 			}

@@ -15,8 +15,8 @@ SUB - done
 SUBU - done
 MULT - needs testing. doesn't work if result is over 32 bits. also need to test negative numbers
 MULTU - needs testing
-DIV
-DIVU
+DIV - done
+DIVU - done
 AND - done
 ANDI - done
 OR - done
@@ -36,21 +36,21 @@ LUI - done
 SW - done, exception not handled, needs testing.
 SB - done, exception not handled, needs testing.
 SH - done, exception not handled, needs testing.
-MFHI
-MFLO
-MTHI
-MTLO
-BEQ
-BNE
-BLEZ
-BLTZ
-BGEZ
-BGTZ
-J
-JR
-JAL
-JALR
-SYSCALL
+MFHI - done
+MFLO - done
+MTHI - done
+MTLO - done
+BEQ - done
+BNE - done
+BLEZ - done
+BLTZ - done
+BGEZ - done
+BGTZ - done
+J - done
+JR - done
+JAL - done
+JALR - done
+SYSCALL - done
 
 
 3C031000 // LUI load 0x1000 into upper of register 3
