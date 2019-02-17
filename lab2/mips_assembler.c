@@ -50,7 +50,7 @@ uint32_t parse_instruction(char* line)
 {
 	uint32_t machine_instruction;
 	char *instruction, *arg1, *arg2, *arg3;
-	const char s[2] = " ";
+	const char s[4] = " ,$"; //can use multiple delimiters
 	instruction = strtok(line, s);
 
 	if(strcmp(instruction, "SLL") == 0)
