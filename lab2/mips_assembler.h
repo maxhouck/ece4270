@@ -15,3 +15,5 @@ uint32_t parse_instruction(char*);
 
 void write_file(uint32_t);
 
+//take the register name and return the register num. -1 for fail.
+int nameToNum(char* registerName);
