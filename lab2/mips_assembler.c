@@ -51,9 +51,9 @@ char* parse_file() {
 }
 
 //take the register name and return the register num. -1 for fail.
-int nameToNum(char* registerName)
+uint32_t nameToNum(char* registerName)
 {
-	int i = 0;
+	uint32_t i = 0;
 
 	for(i=0;i<32;i++)
 	{
@@ -66,10 +66,13 @@ int nameToNum(char* registerName)
 	return -1;
 }
 
+
+
 //parse one line
 uint32_t parse_instruction(char* line)
 {
 	uint32_t machine_instruction = 0;
+	uint32_t rt, rd, sa = 0;
 	char *instruction, *arg1, *arg2, *arg3;
 	const char s[4] = " ,$"; //can use multiple delimiters
 	instruction = strtok(line, s);
@@ -81,7 +84,15 @@ uint32_t parse_instruction(char* line)
 		arg2 = strtok(NULL, s);
 		arg3 = strtok(NULL, s);
 
-		//instruction = 0b
+		rt = nameToNum(arg2);
+		rd = nameToNum(arg1);
+		sa = (uint32_t)strtoul(arg3, NULL, 0);
+
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = (rd << 11) | machine_instruction;
+		machine_instruction = (sa << 6) | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SRL") == 0)
 	{
