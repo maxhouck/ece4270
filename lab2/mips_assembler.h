@@ -2,7 +2,7 @@
 
 FILE *input; //pointer to input file
 FILE *output; //pointer to output file
-int file_flag; //flag to signal EOF
+char* file_flag = "a"; //flag to signal EOF
 
 //main accepts a file as input
 int main(int argc, char *argv[]);

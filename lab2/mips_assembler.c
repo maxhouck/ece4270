@@ -31,11 +31,12 @@ int main(int argc, char *argv[])
 	}
 	char* assembly_instruction;
 	uint32_t machine_instruction;
-	while(file_flag != EOF) {
+	while(file_flag != NULL) {
 		assembly_instruction = parse_file();
+		//printf("%s\n", assembly_instruction);
 		machine_instruction = parse_instruction(assembly_instruction);
 		write_file(machine_instruction);
-		printf("%x %s", machine_instruction, assembly_instruction);
+		//printf("%x %s", machine_instruction, assembly_instruction);
 	}
 	fclose(input);
 	fclose(output);
@@ -44,8 +45,8 @@ int main(int argc, char *argv[])
 
 //load input file and parse out every line
 char* parse_file() {
-	char* current_line = 0;
-	file_flag = fscanf(input, "%s", current_line);
+	static char current_line[100];
+	file_flag = fgets(current_line, sizeof(current_line), input);
 	return current_line;
 		
 }
@@ -71,12 +72,15 @@ uint32_t nameToNum(char* registerName)
 //parse one line
 uint32_t parse_instruction(char* line)
 {
+	//printf("Test\n");
+	//printf("%s\n", line);
 	uint32_t machine_instruction = 0;
-	uint32_t rt, rd, sa = 0;
+	uint32_t rt, rd, sa, immediate, rs, target = 0;
 	char *instruction, *arg1, *arg2, *arg3;
 	const char s[4] = " ,$"; //can use multiple delimiters
 	instruction = strtok(line, s);
-	printf("%s\n", instruction);
+	//printf("Test2\n");
+	//printf("%s\n", instruction);
 
 	if(strcmp(instruction, "SLL") == 0)
 	{
@@ -96,23 +100,82 @@ uint32_t parse_instruction(char* line)
 	}
 	else if(strcmp(instruction, "SRL") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+		arg3 = strtok(NULL, s);
+
+		rt = nameToNum(arg2);
+		rd = nameToNum(arg1);
+		sa = (uint32_t)strtoul(arg3, NULL, 0);
+
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = (rd << 11) | machine_instruction;
+		machine_instruction = (sa << 6) | machine_instruction;
+		machine_instruction = 0b000010 | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SRA") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+		arg3 = strtok(NULL, s);
+
+		rt = nameToNum(arg2);
+		rd = nameToNum(arg1);
+		sa = (uint32_t)strtoul(arg3, NULL, 0);
+
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = (rd << 11) | machine_instruction;
+		machine_instruction = (sa << 6) | machine_instruction;
+		machine_instruction = 0b000011 | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MULT") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+
+		rs = nameToNum(arg1);
+		rt = nameToNum(arg2);
+
+		machine_instruction = (rs << 21) | machine_instruction;
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = 0b011000 | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MULTU") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+
+		rs = nameToNum(arg1);
+		rt = nameToNum(arg2);
+
+		machine_instruction = (rs << 21) | machine_instruction;
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = 0b011001 | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ADD") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+		arg3 = strtok(NULL, s);
+
+		rd = nameToNum(arg1);
+		rs = nameToNum(arg2);
+		rt = nameToNum(arg3);
+
+		machine_instruction = (rs << 21) | machine_instruction;
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = (rd << 11) | machine_instruction;
+		machine_instruction = 0b100000 | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ADDU") == 0)
 	{
