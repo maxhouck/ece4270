@@ -249,9 +249,26 @@ uint32_t parse_instruction(char* line)
 	{
 		//do something
 	}
-	else if(strcmp(instruction, "ADDIU") == 0)
+	else if(strcmp(instruction, "addiu") == 0)
 	{
-		//do something
+		arg1 = strtok(NULL, s);
+		arg2 = strtok(NULL, s);
+		arg3 = strtok(NULL, s);
+
+		rt = nameToNum(arg1);
+		rs = nameToNum(arg2);
+		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
+		//printf("%d, %d, %d\n", rt, rs, immediate);
+
+		machine_instruction = (0b001001 << 26) | machine_instruction;
+		machine_instruction = (rs << 21) | machine_instruction;
+		machine_instruction = (rt << 16) | machine_instruction;
+		machine_instruction = immediate | machine_instruction;
+
+		//printf("%x\n", machine_instruction);
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ANDI") == 0)
 	{
