@@ -392,10 +392,9 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b011010 | machine_instruction;
 	}
-	else if(strcmp(instruction, "SYSCALL") == 0)
+	else if(strncmp(instruction, "SYSCALL", 7) == 0)
 	{
 		machine_instruction = 0b001100 | machine_instruction;
-		printf("inside syscall");
 	}
 	else if(strcmp(instruction, "ADDI") == 0)
 	{
