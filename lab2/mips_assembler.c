@@ -115,8 +115,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = (sa << 6) | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SRL") == 0)
 	{
@@ -132,8 +130,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = (sa << 6) | machine_instruction;
 		machine_instruction = 0b000010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SRA") == 0)
 	{
@@ -149,8 +145,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = (sa << 6) | machine_instruction;
 		machine_instruction = 0b000011 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MULT") == 0)
 	{
@@ -163,8 +157,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = 0b011000 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MULTU") == 0)
 	{
@@ -177,8 +169,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = 0b011001 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ADD") == 0)
 	{
@@ -194,8 +184,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100000 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ADDU") == 0)
 	{
@@ -211,8 +199,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100001 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SUB") == 0)
 	{
@@ -228,8 +214,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SUBU") == 0)
 	{
@@ -245,8 +229,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100011 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "AND") == 0)
 	{
@@ -262,8 +244,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100100 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "OR") == 0)
 	{
@@ -279,8 +259,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100101 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "XOR") == 0)
 	{
@@ -296,8 +274,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100110 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "NOR") == 0)
 	{
@@ -313,8 +289,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100111 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SLT") == 0)
 	{
@@ -330,8 +304,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b101010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "DIV") == 0)
 	{
@@ -344,8 +316,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = 0b011010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "DIVU") == 0)
 	{
@@ -358,8 +328,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = 0b011011 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MFHI") == 0)
 	{
@@ -369,8 +337,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b010000 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MFLO") == 0)
 	{
@@ -380,8 +346,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b010010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MTHI") == 0)
 	{
@@ -391,8 +355,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = 0b010010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "MTLO") == 0)
 	{
@@ -402,8 +364,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = 0b010011 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "JR") == 0)
 	{
@@ -413,8 +373,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = 0b001000 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "JALR") == 0)
 	{
@@ -432,8 +390,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b011010 | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SYSCALL") == 0)
 	{
@@ -453,8 +409,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ADDIU") == 0)
 	{
@@ -470,8 +424,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ANDI") == 0)
 	{
@@ -487,8 +439,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ORI") == 0)
 	{
@@ -504,8 +454,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "XORI") == 0)
 	{
@@ -521,8 +469,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LUI") == 0)
 	{
@@ -535,8 +481,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SLTI") == 0)
 	{
@@ -552,8 +496,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LB") == 0)
 	{
@@ -569,8 +511,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LH") == 0)
 	{
@@ -586,8 +526,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LW") == 0)
 	{
@@ -603,8 +541,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SB") == 0)
 	{
@@ -620,8 +556,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SH") == 0)
 	{
@@ -637,8 +571,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SW") == 0)
 	{
@@ -654,8 +586,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BEQ") == 0)
 	{
@@ -671,8 +601,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BNE") == 0)
 	{
@@ -690,8 +618,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BLEZ") == 0)
 	{
@@ -704,8 +630,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (0b000110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BLTZ") == 0)
 	{
@@ -718,8 +642,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (0b000001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BGEZ") == 0)
 	{
@@ -733,8 +655,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (0b00001 << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BGTZ") == 0)
 	{
@@ -747,8 +667,6 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (0b000111 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "J") == 0)
 	{
@@ -758,8 +676,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (0b000010 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
-
-		return machine_instruction;
 	}
 	else if(strcmp(instruction, "JAL") == 0)
 	{
@@ -769,8 +685,6 @@ uint32_t parse_instruction(char* line)
 
 		machine_instruction = (0b000011 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
-
-		return machine_instruction;
 	}
 	else
 	{
