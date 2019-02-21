@@ -32,11 +32,12 @@ int main(int argc, char *argv[])
 	}
 	char* assembly_instruction;
 	uint32_t machine_instruction;
+	assembly_instruction = parse_file();
 	while(file_flag != NULL) {
-		assembly_instruction = parse_file();
 		//printf("%s\n", assembly_instruction);
 		machine_instruction = parse_instruction(assembly_instruction);
 		write_file(machine_instruction);
+		assembly_instruction = parse_file();
 		//printf("%x %s", machine_instruction, assembly_instruction);
 	}
 	fclose(input);
@@ -393,7 +394,8 @@ uint32_t parse_instruction(char* line)
 	}
 	else if(strcmp(instruction, "SYSCALL") == 0)
 	{
-		//do something
+		machine_instruction = 0b001100 | machine_instruction;
+		printf("inside syscall");
 	}
 	else if(strcmp(instruction, "ADDI") == 0)
 	{
