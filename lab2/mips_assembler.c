@@ -67,17 +67,15 @@ uint32_t nameToNum(char* registerName)
 	return -1;
 }
 
-
-
 //parse one line
 uint32_t parse_instruction(char* line)
 {
 	//printf("Test\n");
 	//printf("%s\n", line);
 	uint32_t machine_instruction = 0;
-	uint32_t rt, rd, sa, immediate, rs;//, target = 0;
+	uint32_t rt, rd, sa, immediate, rs, base, target, offset;//, target = 0;
 	char *instruction, *arg1, *arg2, *arg3;
-	const char s[4] = " ,$()"; //can use multiple delimiters
+	const char s[6] = " ,$()"; //can use multiple delimiters
 	instruction = strtok(line, s);
 	//printf("Test2\n");
 	printf("%s\n", instruction);
@@ -403,7 +401,7 @@ uint32_t parse_instruction(char* line)
 
 		if(arg2 == NULL)  { //JALR rs
 			rs = nameToNum(arg1);
-			rd = nameToNum(31);
+			rd = 31;
 		}
 		else {//JALR rd, rs
 			rs = nameToNum(arg1);
