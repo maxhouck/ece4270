@@ -113,8 +113,6 @@ uint32_t parse_instruction(char* line)
 		rd = nameToNum(arg1);
 		sa = (uint32_t)strtoul(arg3, NULL, 0);
 
-		sa = limitBits(sa, 5);
-
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = (sa << 6) | machine_instruction;
@@ -128,8 +126,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg2);
 		rd = nameToNum(arg1);
 		sa = (uint32_t)strtoul(arg3, NULL, 0);
-
-		sa = limitBits(sa, 5);
 
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
@@ -145,8 +141,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg2);
 		rd = nameToNum(arg1);
 		sa = (uint32_t)strtoul(arg3, NULL, 0);
-
-		sa = limitBits(sa, 5);
 
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
@@ -413,8 +407,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
 
-		immediate = limitBits(immediate, 16);
-
 		machine_instruction = (0b001000 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -429,8 +421,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
-
-		immediate = limitBits(immediate, 16);
 
 		machine_instruction = (0b001001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
@@ -447,8 +437,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
 
-		immediate = limitBits(immediate, 16);
-
 		machine_instruction = (0b001100 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -463,8 +451,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
-
-		immediate = limitBits(immediate, 16);
 
 		machine_instruction = (0b001101 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
@@ -481,8 +467,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
 
-		immediate = limitBits(immediate, 16);
-
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -495,8 +479,6 @@ uint32_t parse_instruction(char* line)
 
 		rt = nameToNum(arg1);
 		immediate = (uint32_t)strtoul(arg2, NULL, 0);
-
-		immediate = limitBits(immediate, 16);
 
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -511,8 +493,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
-
-		immediate = limitBits(immediate, 16);
 
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
@@ -529,8 +509,6 @@ uint32_t parse_instruction(char* line)
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b100000 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -545,8 +523,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
-
-		offset = limitBits(offset, 16);
 
 		machine_instruction = (0b100001 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
@@ -563,8 +539,6 @@ uint32_t parse_instruction(char* line)
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b100011 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -579,8 +553,6 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
-
-		offset = limitBits(offset, 16);
 
 		machine_instruction = (0b101000 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
@@ -597,8 +569,6 @@ uint32_t parse_instruction(char* line)
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b101001 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -614,8 +584,6 @@ uint32_t parse_instruction(char* line)
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b101011 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -630,8 +598,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		rt = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
-
-		offset = limitBits(offset, 16);
 
 		machine_instruction = (0b000100 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
@@ -663,8 +629,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b000110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
@@ -677,8 +641,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b000001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
@@ -690,8 +652,6 @@ uint32_t parse_instruction(char* line)
 
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
-
-		offset = limitBits(offset, 16);
 
 		machine_instruction = (0b000001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
@@ -706,8 +666,6 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
-		offset = limitBits(offset, 16);
-
 		machine_instruction = (0b000111 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
@@ -718,8 +676,6 @@ uint32_t parse_instruction(char* line)
 
 		target = (uint32_t)strtoul(arg1, NULL, 0);
 
-		target = limitBits(target, 26);
-
 		machine_instruction = (0b000010 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
 	}
@@ -728,8 +684,6 @@ uint32_t parse_instruction(char* line)
 		arg1 = strtok(NULL, s);
 
 		target = (uint32_t)strtoul(arg1, NULL, 0);
-
-		target = limitBits(target, 26);
 
 		machine_instruction = (0b000011 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
