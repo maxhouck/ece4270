@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "mips_assembler.h"
 
@@ -67,6 +68,18 @@ uint32_t nameToNum(char* registerName)
 	return -1;
 }
 
+uint32_t limitBits(uint32_t line, int bits)
+{
+	uint32_t num = 0;
+
+	num = num | ((1 << bits) - 1);
+	//printf("%x\n", num);
+
+	line = line & num;
+
+	return line;
+}
+
 //parse one line
 uint32_t parse_instruction(char* line)
 {
@@ -78,6 +91,15 @@ uint32_t parse_instruction(char* line)
 	const char s[6] = " ,$()"; //can use multiple delimiters
 	instruction = strtok(line, s);
 	//printf("Test2\n");
+	//printf("%s\n", instruction);
+
+	int i = 0;
+	while(instruction[i] != '\0')
+	{
+		instruction[i] = toupper(instruction[i]);
+		i++;
+	}
+
 	printf("%s\n", instruction);
 
 	if(strcmp(instruction, "SLL") == 0)
@@ -413,7 +435,7 @@ uint32_t parse_instruction(char* line)
 
 		return machine_instruction;
 	}
-	else if(strcmp(instruction, "syscall") == 0)
+	else if(strcmp(instruction, "SYSCALL") == 0)
 	{
 		//do something
 	}
@@ -426,12 +448,15 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001000 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
-	else if(strcmp(instruction, "addiu") == 0)
+	else if(strcmp(instruction, "ADDIU") == 0)
 	{
 		arg1 = strtok(NULL, s);
 		arg2 = strtok(NULL, s);
@@ -440,6 +465,7 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
@@ -456,10 +482,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001100 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "ORI") == 0)
 	{
@@ -470,10 +499,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001101 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "XORI") == 0)
 	{
@@ -484,10 +516,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LUI") == 0)
 	{
@@ -496,9 +531,12 @@ uint32_t parse_instruction(char* line)
 
 		rt = nameToNum(arg1);
 		immediate = (uint32_t)strtoul(arg2, NULL, 0);
+
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SLTI") == 0)
 	{
@@ -509,10 +547,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		immediate = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b001110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LB") == 0)
 	{
@@ -523,10 +564,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b100000 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LH") == 0)
 	{
@@ -537,10 +581,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b100001 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "LW") == 0)
 	{
@@ -551,10 +598,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b100011 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SB") == 0)
 	{
@@ -565,10 +615,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b101000 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SH") == 0)
 	{
@@ -579,10 +632,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b101001 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "SW") == 0)
 	{
@@ -593,10 +649,13 @@ uint32_t parse_instruction(char* line)
 		rt = nameToNum(arg1);
 		base = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b101011 << 26) | machine_instruction;
 		machine_instruction = (base << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BEQ") == 0)
 	{
@@ -607,10 +666,13 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		rt = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
 		machine_instruction = (0b000100 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BNE") == 0)
 	{
@@ -621,10 +683,15 @@ uint32_t parse_instruction(char* line)
 		rs = nameToNum(arg1);
 		rt = nameToNum(arg2);
 		offset = (uint32_t)strtoul(arg3, NULL, 0);
+
+		offset = limitBits(offset, 16);
+
 		machine_instruction = (0b000101 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BLEZ") == 0)
 	{
@@ -633,9 +700,12 @@ uint32_t parse_instruction(char* line)
 
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
+
 		machine_instruction = (0b000110 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BLTZ") == 0)
 	{
@@ -644,9 +714,12 @@ uint32_t parse_instruction(char* line)
 
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
+
 		machine_instruction = (0b000001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BGEZ") == 0)
 	{
@@ -655,10 +728,13 @@ uint32_t parse_instruction(char* line)
 
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
+
 		machine_instruction = (0b000001 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = (0b00001 << 16) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "BGTZ") == 0)
 	{
@@ -667,25 +743,34 @@ uint32_t parse_instruction(char* line)
 
 		rs = nameToNum(arg1);
 		offset = (uint32_t)strtoul(arg2, NULL, 0);
+
 		machine_instruction = (0b000111 << 26) | machine_instruction;
 		machine_instruction = (rs << 21) | machine_instruction;
 		machine_instruction = offset | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "J") == 0)
 	{
 		arg1 = strtok(NULL, s);
 
 		target = (uint32_t)strtoul(arg1, NULL, 0);
+
 		machine_instruction = (0b000010 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
+
+		return machine_instruction;
 	}
 	else if(strcmp(instruction, "JAL") == 0)
 	{
 		arg1 = strtok(NULL, s);
 
 		target = (uint32_t)strtoul(arg1, NULL, 0);
+
 		machine_instruction = (0b000011 << 26) | machine_instruction;
 		machine_instruction = target | machine_instruction;
+
+		return machine_instruction;
 	}
 	else
 	{
