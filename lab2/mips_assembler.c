@@ -525,8 +525,8 @@ uint32_t parse_instruction(char* line)
 		arg3 = strtok(NULL, s);
 
 		rt = nameToNum(arg1);
-		base = nameToNum(arg2);
-		offset = (uint32_t)strtoul(arg3, NULL, 0);
+		base = nameToNum(arg3);
+		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
 		offset = limitBits(offset, 16);
 
@@ -542,8 +542,8 @@ uint32_t parse_instruction(char* line)
 		arg3 = strtok(NULL, s);
 
 		rt = nameToNum(arg1);
-		base = nameToNum(arg2);
-		offset = (uint32_t)strtoul(arg3, NULL, 0);
+		base = nameToNum(arg3);
+		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
 		offset = limitBits(offset, 16);
 
@@ -559,8 +559,8 @@ uint32_t parse_instruction(char* line)
 		arg3 = strtok(NULL, s);
 
 		rt = nameToNum(arg1);
-		base = nameToNum(arg2);
-		offset = (uint32_t)strtoul(arg3, NULL, 0);
+		base = nameToNum(arg3);
+		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
 		offset = limitBits(offset, 16);
 
@@ -593,8 +593,8 @@ uint32_t parse_instruction(char* line)
 		arg3 = strtok(NULL, s);
 
 		rt = nameToNum(arg1);
-		base = nameToNum(arg2);
-		offset = (uint32_t)strtoul(arg3, NULL, 0);
+		base = nameToNum(arg3);
+		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
 		offset = limitBits(offset, 16);
 
@@ -610,8 +610,8 @@ uint32_t parse_instruction(char* line)
 		arg3 = strtok(NULL, s);
 
 		rt = nameToNum(arg1);
-		base = nameToNum(arg2);
-		offset = (uint32_t)strtoul(arg3, NULL, 0);
+		base = nameToNum(arg3);
+		offset = (uint32_t)strtoul(arg2, NULL, 0);
 
 		offset = limitBits(offset, 16);
 
