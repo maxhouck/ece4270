@@ -60,7 +60,7 @@ uint32_t nameToNum(char* registerName)
 
 	for(i=0;i<32;i++)
 	{
-		if(strcmp(registerName, regName[i]) == 0)
+		if(strncmp(registerName, regName[i], 2) == 0)
 		{
 			return i;
 		}
@@ -213,6 +213,8 @@ uint32_t parse_instruction(char* line)
 		arg2 = strtok(NULL, s);
 		arg3 = strtok(NULL, s);
 
+		printf("%s\n", arg3);
+
 		rd = nameToNum(arg1);
 		rs = nameToNum(arg2);
 		rt = nameToNum(arg3);
@@ -221,6 +223,9 @@ uint32_t parse_instruction(char* line)
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = (rd << 11) | machine_instruction;
 		machine_instruction = 0b100010 | machine_instruction;
+
+		printf("%x\n", machine_instruction);
+		printf("%x\n", rt);
 	}
 	else if(strcmp(instruction, "SUBU") == 0)
 	{
