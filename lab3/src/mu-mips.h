@@ -52,6 +52,8 @@ typedef struct CPU_Pipeline_Reg_Struct{
 	uint32_t B;
 	uint32_t imm;
 	uint32_t ALUOutput;
+	uint32_t LO;
+	uint32_t HI;
 	uint32_t LMD;
 	
 } CPU_Pipeline_Reg;
@@ -102,4 +104,23 @@ void IF();/*IMPLEMENT THIS*/
 void show_pipeline();/*IMPLEMENT THIS*/
 void initialize();
 void print_program(); /*IMPLEMENT THIS*/
+
+typedef struct r_type_structure {
+  uint8_t rs, rt, rd, shamt;
+} r_type_struct;
+
+r_type_struct parse_r_type(uint32_t instruction);
+
+typedef struct i_type_structure {
+  uint16_t immediate, offset; //these will be the same value, just renamed it for use with load commands
+  uint8_t rs, rt, base;
+} i_type_struct;
+
+typedef struct j_type_structure {
+	uint32_t target;
+} j_type_struct;
+
+i_type_struct parse_i_type(uint32_t instruction);
+r_type_struct parse_r_type(uint32_t instruction);
+j_type_struct parse_j_type(uint32_t instruction);
 
