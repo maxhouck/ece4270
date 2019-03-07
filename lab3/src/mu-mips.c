@@ -340,7 +340,7 @@ void WB()
 		opcode = instruction & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 		switch(opcode) {
 			case 0b000000: { //SLL
-				CPU_STATE.REGS[(MEM_WB.IR & 0x0000F800) >> 11] = MEM_WB.ALUOutput;
+				CURRENT_STATE.REGS[(MEM_WB.IR & 0x0000F800) >> 11] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b000010: { //SRL
@@ -624,268 +624,65 @@ void MEM()
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 		opcode = instruction & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 		switch(opcode) {
-			case 0b000000: { //SLL
-				break;
-			}
-			case 0b000010: { //SRL
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
-				break;
-			}
-			case 0b000011: { //SRA
-				r_type_struct rstruct = parse_r_type(instruction);
-				if(CURRENT_STATE.REGS[rstruct.rt] >> 31) {//if negative, sign extend
-					uint32_t extension = 0xFFFFFFFF << (32-rstruct.shamt);
-					NEXT_STATE.REGS[rstruct.rd] = extension | (CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt);
-				}
-				else //else same as SRL
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
-				break;
-			}
-			case 0b011000: { //MULT
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
-				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
-				if(rt >> 31) {	// then negative number
-					rt = 0xFFFFFFFF00000000 | rt; //sign extend with 1's
-				}
-				if(rs >> 31) {	// then negative number
-					rs = 0xFFFFFFFF00000000 | rs; //sign extend with 1's
-				}
-				uint64_t result = rt * rs;
-				NEXT_STATE.LO = (result); //low bit
-				NEXT_STATE.HI = (result) >> 32; //high part
-				break;
-			}
-			case 0b011001: { //MULTU
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
-				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
-				uint64_t result = rt*rs;
-				NEXT_STATE.LO = (result);// & 0xFFFFFFFF; //low bit
-				NEXT_STATE.HI = (result) >> 32; //high part
-				break;
-			}
-			case 0b100000: { //ADD
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
-			case 0b100001: { //ADDIU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
-			case 0b100010: { //SUB
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100011: { //SUBU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100100: {//AND
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] & CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100101: {//OR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] | CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100110: {//XOR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] ^ CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100111: {//NOR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = (~CURRENT_STATE.REGS[rstruct.rs]) & (~CURRENT_STATE.REGS[rstruct.rt]);
-				break;
-			}
-			case 0b101010: {//SLT
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint32_t result = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
-				NEXT_STATE.REGS[rstruct.rd] = result < 0xF0000000 ? 0 : 1;
-				break;
-			}
-			case 0b011010: { //DIV
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs] / CURRENT_STATE.REGS[rstruct.rt];
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs] % CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b011011: { //DIVU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = (CURRENT_STATE.REGS[rstruct.rs]) / (CURRENT_STATE.REGS[rstruct.rt]);
-				NEXT_STATE.HI = (CURRENT_STATE.REGS[rstruct.rs]) % (CURRENT_STATE.REGS[rstruct.rt]);
-				break;
-			}
-			case 0b010000: { //MFHI
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.HI;
-				break;
-			}
-			case 0b010010: { //MFLO
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.LO;
-				break;
-			}
-			case 0b010001: { //MTHI
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
-			case 0b010011: { //MTLO
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
 			case 0x0C: { //SYSTEMCALL
-				if(CURRENT_STATE.REGS[2] == 0xA)
-				{
-					RUN_FLAG = FALSE;
-				}
-				printf("SYSCALL\n");
+				//We don't do anything with R type instructions
+				//printf("SYSCALL\n");
 				break;
 			}
 			default: {
-				printf("this instruction has not been handled\t");
+				//printf("this instruction has not been handled\t");
+				//No R type
 			}
 		}
 	}
 	else { //if opcode is anything else this is an I or J type instruction
 		switch(opcode) {
-			case 0b001000: { //ADDI 001000 (for signed ints)
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				uint8_t bit30carry = (((immediate >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((immediate >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
-				break;
-			}
-			case 0b001001: { //ADDIU 001001 (for unsigned ints)
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
-				break;
-			}
-			case 0b001100: { //ANDI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] & istruct.immediate;
-				break;
-			}
-			case 0b001101: { //ORI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] | istruct.immediate;
-				break;
-			}
-			case 0b001110: { //XORI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] ^ istruct.immediate;
-				break;
-			}
-			case 0b001111: { //LUI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = istruct.immediate << 16; //shift immediate and place into rt
-				break;
-			}
-			case 0b001010: { //SLTI
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				uint32_t result = CURRENT_STATE.REGS[istruct.rs] - immediate;
-				NEXT_STATE.REGS[istruct.rt] = result < 0xF0000000 ? 0 : 1;
-				break;
-			}
+			uint32_t data;
 			case 0b100000: { //LB
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				uint32_t byte = 0xFF & mem_read_32(address);
+				uint32_t byte = 0xFF & mem_read_32(EX_MEM.ALUOutput);
 				if(byte >> 7) {	// then negative number
 					byte = (0xFFFFFF00 | byte); //sign extend with 1's
 				}
-				NEXT_STATE.REGS[istruct.rt] = byte;
+
+				MEM_WB.LMD = byte;
 				break;
 			}
 			case 0b100001: { //LH
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				uint32_t halfword = 0xFFFF & mem_read_32(address);
+				uint32_t halfword = 0xFFFF & mem_read_32(EX_MEM.ALUOutput);
 				if(halfword >> 15) {	// then negative number
 					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
 				}
-				NEXT_STATE.REGS[istruct.rt] = halfword;
+
+				MEM_WB.LMD = halfword;
 				break;
 			}
 			case 0b100011: { //LW
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				NEXT_STATE.REGS[istruct.rt] = mem_read_32(address);
+				uint32_t word = mem_read_32(EX_MEM.ALUOutput);
+
+				MEM_WB.LMD = word;
 				break;
 			}
 			case 0b101000: { //SB
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFF);
+				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
 			case 0b101001: { //SH
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFFFF);
+				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
 			case 0b101011: { //SW
 				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt]);
+				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
 			default: {
-				printf("this instruction has not been handled\t");
+				//printf("this instruction has not been handled\t");
+				//No an instruction accessing memory
 			}
 		}
 	}
@@ -1194,98 +991,98 @@ void ID() //step 2
 			case 0b000000: { //SLL
 				r_type_struct rstruct = parse_r_type(instruction);
 				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b000010: { //SRL
 				r_type_struct rstruct = parse_r_type(instruction);
 				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b000011: { //SRA
 				r_type_struct rstruct = parse_r_type(instruction);
 				//sign extend in the EX() stage I think
 				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011000: { //MULT
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011001: { //MULTU
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100000: { //ADD
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100001: { //ADDU
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100010: { //SUB
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100011: { //SUBU
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100100: {//AND
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100101: {//OR
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100110: {//XOR
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100111: {//NOR
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b101010: {//SLT
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011010: { //DIV
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011011: { //DIVU
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b010000: { //MFHI
@@ -1298,12 +1095,12 @@ void ID() //step 2
 			}
 			case 0b010001: { //MTHI
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 				break;
 			}
 			case 0b010011: { //MTLO
 				r_type_struct rstruct = parse_r_type(instruction);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 				break;
 			}
 			case 0x0C: { //SYSTEMCALL
@@ -1318,8 +1115,8 @@ void ID() //step 2
 	}
 	else { //if opcode is anything else this is an I or J type instruction
 		i_type_struct istruct = parse_i_type(instruction);
-		ID_EX.A = CPU_STATE.REGS[istruct.rs];
-		ID_EX.B = CPU_STATE.REGS[istruct.rt];
+		ID_EX.A = CURRENT_STATE.REGS[istruct.rs];
+		ID_EX.B = CURRENT_STATE.REGS[istruct.rt];
 		ID_EX.imm = istruct.immediate;
 
 	}
