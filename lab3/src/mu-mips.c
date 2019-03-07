@@ -335,7 +335,7 @@ void WB()
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
 
-/*	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 		opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 		switch(opcode) {
@@ -605,7 +605,7 @@ void WB()
 				printf("this instruction has not been handled\t");
 			}
 		}
-	}*/
+	}
 }
 
 /************************************************************/
@@ -640,9 +640,7 @@ void MEM()
 	}
 	else { //if opcode is anything else this is an I or J type instruction
 		switch(opcode) {
-			uint32_t data;
 			case 0b100000: { //LB
-				i_type_struct istruct = parse_i_type(instruction);
 				uint32_t byte = 0xFF & mem_read_32(EX_MEM.ALUOutput);
 				if(byte >> 7) {	// then negative number
 					byte = (0xFFFFFF00 | byte); //sign extend with 1's
@@ -652,7 +650,6 @@ void MEM()
 				break;
 			}
 			case 0b100001: { //LH
-				i_type_struct istruct = parse_i_type(instruction);
 				uint32_t halfword = 0xFFFF & mem_read_32(EX_MEM.ALUOutput);
 				if(halfword >> 15) {	// then negative number
 					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
@@ -662,23 +659,19 @@ void MEM()
 				break;
 			}
 			case 0b100011: { //LW
-				i_type_struct istruct = parse_i_type(instruction);
 				uint32_t word = mem_read_32(EX_MEM.ALUOutput);
 
 				MEM_WB.LMD = word;
 				break;
 			case 0b101000: { //SB
-				i_type_struct istruct = parse_i_type(instruction);
 				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
 			case 0b101001: { //SH
-				i_type_struct istruct = parse_i_type(instruction);
 				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
 			case 0b101011: { //SW
-				i_type_struct istruct = parse_i_type(instruction);
 				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
 			}
@@ -745,7 +738,7 @@ void EX()
 			}
 			case 0b100000: { //ADD
 				uint8_t bit30carry = (((EX_MEM.A >> 30) & 0x1) + (0x1 & (EX_MEM.B >> 30))) >> 1;
-				uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
+    				uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
 				if (bit30carry == bit31carry) //check for overflow exception
 					EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;
 				break;
@@ -917,98 +910,96 @@ void ID() //step 2
 			}
 			case 0b011000: { //MULT
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011001: { //MULTU
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100000: { //ADD
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100001: { //ADDU
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100010: { //SUB
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100011: { //SUBU
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100100: {//AND
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100101: {//OR
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100110: {//XOR
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b100111: {//NOR
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b101010: {//SLT
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011010: { //DIV
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b011011: { //DIVU
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
-				ID_EX.B = CPU_STATE.REGS[rstruct.rt];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 				break;
 			}
 			case 0b010000: { //MFHI
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
 				break;
 			}
 			case 0b010010: { //MFLO
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
 				break;
 			}
 			case 0b010001: { //MTHI
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 				break;
 			}
 			case 0b010011: { //MTLO
 				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CPU_STATE.REGS[rstruct.rs];
+				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 				break;
 			}
 			case 0x0C: { //SYSTEMCALL
@@ -1023,8 +1014,8 @@ void ID() //step 2
 	}
 	else { //if opcode is anything else this is an I or J type instruction
 		i_type_struct istruct = parse_i_type(IF_ID.IR);
-		ID_EX.A = CPU_STATE.REGS[istruct.rs];
-		ID_EX.B = CPU_STATE.REGS[istruct.rt];
+		ID_EX.A = CURRENT_STATE.REGS[istruct.rs];
+		ID_EX.B = CURRENT_STATE.REGS[istruct.rt];
 		ID_EX.imm = istruct.immediate;
 
 	}
