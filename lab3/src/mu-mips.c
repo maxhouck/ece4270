@@ -335,7 +335,7 @@ void WB()
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
 
-	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+	/*uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 		opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 		switch(opcode) {
@@ -560,8 +560,7 @@ void WB()
 				NEXT_STATE.REGS[istruct.rt] = halfword;
 				break;
 			}
-			MEM_WB.HI = EX_MEM.HI;
-	MEM_WB.LO = EX_MEM.LO;	case 0b100011: { //LW
+			case 0b100011: { //LW
 				i_type_struct istruct = parse_i_type(instruction);
 				uint32_t address = istruct.offset;
 				if(address >> 15) {	// then negative number
@@ -605,7 +604,7 @@ void WB()
 				printf("this instruction has not been handled\t");
 			}
 		}
-	}
+	}*/
 }
 
 /************************************************************/
@@ -663,6 +662,7 @@ void MEM()
 
 				MEM_WB.LMD = word;
 				break;
+			}
 			case 0b101000: { //SB
 				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 				break;
