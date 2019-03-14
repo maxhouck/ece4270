@@ -22,6 +22,7 @@ void help() {
 	printf("low <val>\t-- set the LO register to <val>\n");
 	printf("print\t-- print the program loaded into memory\n");
 	printf("show\t-- print the current content of the pipeline registers\n");
+	printf("forwarding\t-- enable or disable data forwarding\n");
 	printf("?\t-- display help menu\n");
 	printf("quit\t-- exit the simulator\n\n");
 	printf("------------------------------------------------------------------\n\n");
@@ -232,6 +233,13 @@ void handle_command() {
 		case 'p':
 			print_program();
 			break;
+		case 'F':
+		case 'f':
+			if (scanf("%d", &ENABLE_FORWARDING) != 1) {
+			break;
+			}
+			ENABLE_FORWARDING == 0 ? printf("Forwarding OFF\n") : printf("Forwarding ON\n");
+			break;
 		default:
 			printf("Invalid Command.\n");
 			break;
@@ -317,8 +325,10 @@ void handle_pipeline()
 	WB();
 	MEM();
 	EX();
+	check_data_hazard();
 	ID();
 	IF();
+
 }
 
 /************************************************************/
@@ -326,163 +336,164 @@ void handle_pipeline()
 /************************************************************/
 void WB()
 {
-	INSTRUCTION_COUNT++;
-	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
-	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
-		opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
-		int rd = (MEM_WB.IR & 0x0000F800) >> 11;
-		switch(opcode) {
-			case 0b000000: { //SLL
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b000010: { //SRL
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b000011: { //SRA
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b011000: { //MULT
-				NEXT_STATE.HI = MEM_WB.HI;
-				NEXT_STATE.LO = MEM_WB.LO;
-				break;
-			}
-			case 0b011001: { //MULTU
-				NEXT_STATE.HI = MEM_WB.HI;
-				NEXT_STATE.LO = MEM_WB.LO;
-				break;
-			}
-			case 0b100000: { //ADD
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100001: { //ADDIU
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100010: { //SUB
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100011: { //SUBU
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100100: {//AND
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100101: {//OR
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100110: {//XOR
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100111: {//NOR
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b101010: {//SLT
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b011010: { //DIV
-				NEXT_STATE.HI = MEM_WB.HI;
-				NEXT_STATE.LO = MEM_WB.LO;
-				break;
-			}
-			case 0b011011: { //DIVU
-				NEXT_STATE.HI = MEM_WB.HI;
-				NEXT_STATE.LO = MEM_WB.LO;
-				break;
-			}
-			case 0b010000: { //MFHI
-				NEXT_STATE.REGS[rd] = MEM_WB.HI;
-				break;
-			}
-			case 0b010010: { //MFLO
-				NEXT_STATE.REGS[rd] = MEM_WB.LO;
-				break;
-			}
-			case 0b010001: { //MTHI
-				NEXT_STATE.HI = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b010011: { //MTLO
-				NEXT_STATE.LO = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0x0C: { //SYSTEMCALL
-				if(CURRENT_STATE.REGS[2] == 0xA)
-				{
-					RUN_FLAG = FALSE;
+	if(MEM_WB.stalled == 0) {
+		INSTRUCTION_COUNT++;
+		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
+			opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+			switch(opcode) {
+				case 0b000000: { //SLL
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
 				}
-				printf("SYSCALL\n");
-				break;
-			}
-			default: {
-				printf("this instruction has not been handled\t");
+				case 0b000010: { //SRL
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b000011: { //SRA
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b011000: { //MULT
+					NEXT_STATE.HI = MEM_WB.HI;
+					NEXT_STATE.LO = MEM_WB.LO;
+					break;
+				}
+				case 0b011001: { //MULTU
+					NEXT_STATE.HI = MEM_WB.HI;
+					NEXT_STATE.LO = MEM_WB.LO;
+					break;
+				}
+				case 0b100000: { //ADD
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100001: { //ADDIU
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100010: { //SUB
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100011: { //SUBU
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100100: {//AND
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100101: {//OR
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100110: {//XOR
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100111: {//NOR
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b101010: {//SLT
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b011010: { //DIV
+					NEXT_STATE.HI = MEM_WB.HI;
+					NEXT_STATE.LO = MEM_WB.LO;
+					break;
+				} 
+				case 0b011011: { //DIVU
+					NEXT_STATE.HI = MEM_WB.HI;
+					NEXT_STATE.LO = MEM_WB.LO;
+					break;
+				}
+				case 0b010000: { //MFHI
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.HI;
+					break;
+				}
+				case 0b010010: { //MFLO
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.LO;
+					break;
+				}
+				case 0b010001: { //MTHI
+					NEXT_STATE.HI = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b010011: { //MTLO
+					NEXT_STATE.LO = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0x0C: { //SYSTEMCALL
+					if(CURRENT_STATE.REGS[2] == 0xA)
+					{
+						RUN_FLAG = FALSE;
+					}
+					printf("SYSCALL\n");
+					break;
+				}
+				default: {
+					printf("this instruction has not been handled\t");
+				}
 			}
 		}
-	}
-	else { //if opcode is anything else this is an I or J type instruction
-		int rt = (MEM_WB.IR & 0x001F0000) >> 16;
-		switch(opcode) {
-			case 0b001000: { //ADDI 001000 (for signed ints)
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001001: { //ADDIU 001001 (for unsigned ints)
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001100: { //ANDI
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001101: { //ORI
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001110: { //XORI
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001111: { //LUI
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b001010: { //SLTI
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				break;
-			}
-			case 0b100000: { //LB
-				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-				break;
-			}
-			case 0b100001: { //LH
-				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-				break;
-			}
-			case 0b100011: { //LW
-				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-				break;
-			}
-			case 0b101000: { //SB
-				break;
-			}
-			case 0b101001: { //SH
-				break;
-			}
-			case 0b101011: { //SW
-				break;
-			}
-			default: {
-				printf("this instruction has not been handled\t");
+		else { //if opcode is anything else this is an I or J type instruction
+			int rt = (MEM_WB.IR & 0x001F0000) >> 16;
+			switch(opcode) {
+				case 0b001000: { //ADDI 001000 (for signed ints)
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001001: { //ADDIU 001001 (for unsigned ints)
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001100: { //ANDI
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001101: { //ORI
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001110: { //XORI
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001111: { //LUI
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b001010: { //SLTI
+					NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+					break;
+				}
+				case 0b100000: { //LB
+					NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+					break;
+				}
+				case 0b100001: { //LH
+					NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+					break;
+				}
+				case 0b100011: { //LW
+					NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+					break;
+				}
+				case 0b101000: { //SB
+					break;
+				}
+				case 0b101001: { //SH
+					break;
+				}
+				case 0b101011: { //SW
+					break;
+				}
+				default: {
+					printf("this instruction has not been handled\t");
+				}
 			}
 		}
 	}
@@ -493,69 +504,76 @@ void WB()
 /************************************************************/
 void MEM()
 {
-	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.PC = EX_MEM.PC;
-	MEM_WB.imm = EX_MEM.imm;
-	MEM_WB.A = EX_MEM.A;
-	MEM_WB.B = EX_MEM.B;
-	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-	MEM_WB.LMD = 0;
-	MEM_WB.HI = EX_MEM.HI;
-	MEM_WB.LO = EX_MEM.LO;
+	if(EX_MEM.stalled == 1) 
+		MEM_WB.stalled = 1;
+	if(EX_MEM.stalled == 0) {
+		MEM_WB.IR = EX_MEM.IR;
+		MEM_WB.PC = EX_MEM.PC;
+		MEM_WB.imm = EX_MEM.imm;
+		MEM_WB.A = EX_MEM.A;
+		MEM_WB.B = EX_MEM.B;
+		MEM_WB.ALUOutput = EX_MEM.ALUOutput;
+		MEM_WB.LMD = 0;
+		MEM_WB.HI = EX_MEM.HI;
+		MEM_WB.LO = EX_MEM.LO;
+		MEM_WB.RegisterRt = EX_MEM.RegisterRt;
+		MEM_WB.RegisterRd = EX_MEM.RegisterRd;
+		MEM_WB.RegisterRs = EX_MEM.RegisterRs;
 
-	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
-	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
-		opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
-		switch(opcode) {
-			case 0x0C: { //SYSTEMCALL
-				//We don't do anything with R type instructions
-				//printf("SYSCALL\n");
-				break;
-			}
-			default: {
-				//printf("this instruction has not been handled\t");
-				//No R type
+		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
+			opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+			switch(opcode) {
+				case 0x0C: { //SYSTEMCALL
+					//We don't do anything with R type instructions
+					//printf("SYSCALL\n");
+					break;
+				}
+				default: {
+					//printf("this instruction has not been handled\t");
+					//No R type
+				}
 			}
 		}
-	}
-	else { //if opcode is anything else this is an I or J type instruction
-		switch(opcode) {
-			case 0b100000: { //LB
-				uint32_t byte = 0xFF & mem_read_32(EX_MEM.ALUOutput);
-				if(byte >> 7) {	// then negative number
-					byte = (0xFFFFFF00 | byte); //sign extend with 1's
+		else { //if opcode is anything else this is an I or J type instruction
+			switch(opcode) {
+				case 0b100000: { //LB
+					uint32_t byte = 0xFF & mem_read_32(EX_MEM.ALUOutput);
+					if(byte >> 7) {	// then negative number
+						byte = (0xFFFFFF00 | byte); //sign extend with 1's
+					}
+					MEM_WB.LMD = byte;
+					break;
 				}
-				MEM_WB.LMD = byte;
-				break;
-			}
-			case 0b100001: { //LH
-				uint32_t halfword = 0xFFFF & mem_read_32(EX_MEM.ALUOutput);
-				if(halfword >> 15) {	// then negative number
-					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
+				case 0b100001: { //LH
+					uint32_t halfword = 0xFFFF & mem_read_32(EX_MEM.ALUOutput);
+					if(halfword >> 15) {	// then negative number
+						halfword = (0xFFFF0000 | halfword); //sign extend with 1's
+					}
+					MEM_WB.LMD = halfword;
+					break;
 				}
-				MEM_WB.LMD = halfword;
-				break;
-			}
-			case 0b100011: { //LW
-				uint32_t word = mem_read_32(EX_MEM.ALUOutput);
-				MEM_WB.LMD = word;
-				break;
-			}
-			case 0b101000: { //SB
-				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
-				break;
-			}
-			case 0b101001: { //SH
-				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
-				break;
-			}
-			case 0b101011: { //SW
-				mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
-				break;
-			}
-			default: {
-				//printf("this instruction has not been handled\t");
-				//Not an instruction accessing memory
+				case 0b100011: { //LW
+					uint32_t word = mem_read_32(EX_MEM.ALUOutput);
+					MEM_WB.LMD = word;
+					break;
+				}
+				case 0b101000: { //SB
+					mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
+					break;
+				}
+				case 0b101001: { //SH
+					mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
+					break;
+				}
+				case 0b101011: { //SW
+					mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
+					break;
+				}
+				default: {
+					//printf("this instruction has not been handled\t");
+					//Not an instruction accessing memory
+				}
 			}
 		}
 	}
@@ -566,186 +584,193 @@ void MEM()
 /************************************************************/
 void EX()
 {
-	EX_MEM.IR = ID_EX.IR;
-	EX_MEM.PC = ID_EX.PC;
-	EX_MEM.imm = ID_EX.imm;
-	EX_MEM.A = ID_EX.A;
-	EX_MEM.B = ID_EX.B;
-	EX_MEM.ALUOutput = 0;
-	EX_MEM.HI = 0;
-	EX_MEM.LO = 0;
+	if(ID_EX.stalled == 1) 
+		EX_MEM.stalled = 1;
+	if(ID_EX.stalled == 0) {
+		EX_MEM.IR = ID_EX.IR;
+		EX_MEM.PC = ID_EX.PC;
+		EX_MEM.imm = ID_EX.imm;
+		EX_MEM.A = ID_EX.A;
+		EX_MEM.B = ID_EX.B;
+		EX_MEM.ALUOutput = 0;
+		EX_MEM.HI = 0;
+		EX_MEM.LO = 0;
+		EX_MEM.RegisterRt = ID_EX.RegisterRt;
+		EX_MEM.RegisterRd = ID_EX.RegisterRd;
+		EX_MEM.RegisterRs = ID_EX.RegisterRs;
 
-	uint8_t opcode = (EX_MEM.IR & 0xFC000000) >> 26;
-	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
-		opcode = EX_MEM.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
-		switch(opcode) {
-			case 0b000000: { //SLL
-				EX_MEM.ALUOutput = EX_MEM.B << EX_MEM.imm;
-				break;
-			}
-			case 0b000010: { //SRL
-				EX_MEM.ALUOutput = EX_MEM.B >> EX_MEM.imm;
-				break;
-			}
-			case 0b000011: { //SRA
-				if(EX_MEM.B >> 31) {//if negative, sign extend
-					uint32_t extension = 0xFFFFFFFF << (32-EX_MEM.imm);
-					EX_MEM.ALUOutput = extension | (ID_EX.B >> EX_MEM.imm);
+		uint8_t opcode = (EX_MEM.IR & 0xFC000000) >> 26;
+		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
+			opcode = EX_MEM.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+			switch(opcode) {
+				case 0b000000: { //SLL
+					EX_MEM.ALUOutput = EX_MEM.B << EX_MEM.imm;
+					break;
 				}
-				else //else same as SRL
+				case 0b000010: { //SRL
 					EX_MEM.ALUOutput = EX_MEM.B >> EX_MEM.imm;
-				break;
-			}
-			case 0b011000: { //MULT
-				if(EX_MEM.A >> 31) {	// then negative number
-					EX_MEM.A = 0xFFFFFFFF00000000 | EX_MEM.A; //sign extend with 1's
+					break;
 				}
-				if(ID_EX.B >> 31) {	// then negative number
-					EX_MEM.B = 0xFFFFFFFF00000000 | EX_MEM.B; //sign extend with 1's
+				case 0b000011: { //SRA
+					if(EX_MEM.B >> 31) {//if negative, sign extend
+						uint32_t extension = 0xFFFFFFFF << (32-EX_MEM.imm);
+						EX_MEM.ALUOutput = extension | (ID_EX.B >> EX_MEM.imm);
+					}
+					else //else same as SRL
+						EX_MEM.ALUOutput = EX_MEM.B >> EX_MEM.imm;
+					break;
 				}
-				uint64_t result = EX_MEM.A * EX_MEM.B;
-				EX_MEM.LO = (result); //low bit
-				EX_MEM.HI = (result) >> 32; //high part
-				break;
-			}
-			case 0b011001: { //MULTU
-				uint64_t result = EX_MEM.A * EX_MEM.B;
-				EX_MEM.LO = (result);// & 0xFFFFFFFF; //low bit
-				EX_MEM.HI = (result) >> 32; //high part
-				break;
-			}
-			case 0b100000: { //ADD
-				uint8_t bit30carry = (((EX_MEM.A >> 30) & 0x1) + (0x1 & (EX_MEM.B >> 30))) >> 1;
-    				uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
+				case 0b011000: { //MULT
+					if(EX_MEM.A >> 31) {	// then negative number
+						EX_MEM.A = 0xFFFFFFFF00000000 | EX_MEM.A; //sign extend with 1's
+					}
+					if(ID_EX.B >> 31) {	// then negative number
+						EX_MEM.B = 0xFFFFFFFF00000000 | EX_MEM.B; //sign extend with 1's
+					}
+					uint64_t result = EX_MEM.A * EX_MEM.B;
+					EX_MEM.LO = (result); //low bit
+					EX_MEM.HI = (result) >> 32; //high part
+					break;
+				}
+				case 0b011001: { //MULTU
+					uint64_t result = EX_MEM.A * EX_MEM.B;
+					EX_MEM.LO = (result);// & 0xFFFFFFFF; //low bit
+					EX_MEM.HI = (result) >> 32; //high part
+					break;
+				}
+				case 0b100000: { //ADD
+					uint8_t bit30carry = (((EX_MEM.A >> 30) & 0x1) + (0x1 & (EX_MEM.B >> 30))) >> 1;
+	    				uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
+					if (bit30carry == bit31carry) //check for overflow exception
+						EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;
+					break;
+				}
+				case 0b100001: { //ADDIU
 					EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;
-				break;
-			}
-			case 0b100001: { //ADDIU
-				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;
-				break;
-			}
-			case 0b100010: { //SUB
-				uint8_t bit30carry = (((EX_MEM.A >> 30) & 0x1) + (0x1 & (EX_MEM.B >> 30))) >> 1;
-				uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;
-				break;
-			}
-			case 0b100011: { //SUBU
-				EX_MEM.ALUOutput = EX_MEM.B - EX_MEM.A;
-				break;
-			}
-			case 0b100100: {//AND
-				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;
-				break;
-			}
-			case 0b100101: {//OR
-				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;
-				break;
-			}
-			case 0b100110: {//XOR
-				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;
-				break;
-			}
-			case 0b100111: {//NOR
-				EX_MEM.ALUOutput = (~EX_MEM.A) & (~EX_MEM.B);
-				break;
-			}
-			case 0b101010: {//SLT
-				uint32_t result = EX_MEM.A - EX_MEM.B;
-				EX_MEM.ALUOutput = result < 0xF0000000 ? 0 : 1;
-				break;
-			}
-			case 0b011010: { //DIV
-				EX_MEM.LO = EX_MEM.A / EX_MEM.B;
-				EX_MEM.HI = EX_MEM.A % EX_MEM.B;
-				break;
-			}
-			case 0b011011: { //DIVU
-				EX_MEM.LO = EX_MEM.A / EX_MEM.B;
-				EX_MEM.HI = EX_MEM.A % EX_MEM.B;
-				break;
-			}
-			case 0b010000: { //MFHI
-				break;
-			}
-			case 0b010010: { //MFLO
-				break;
-			}
-			case 0b010001: { //MTHI
-				EX_MEM.ALUOutput = EX_MEM.A;
-				break;
-			}
-			case 0b010011: { //MTLO
-				EX_MEM.ALUOutput = EX_MEM.A;
-				break;
-			}
-			case 0x0C: { //SYSTEMCALL
-				break;
-			}
-			default: {
-				printf("this instruction has not been handled\t");
+					break;
+				}
+				case 0b100010: { //SUB
+					uint8_t bit30carry = (((EX_MEM.A >> 30) & 0x1) + (0x1 & (EX_MEM.B >> 30))) >> 1;
+					uint8_t bit31carry = (((EX_MEM.A >> 31) & 0x1) + (0x1 & (EX_MEM.B >> 31))) >> 1; //check for overflow
+					if (bit30carry == bit31carry) //check for overflow exception
+						EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;
+					break;
+				}
+				case 0b100011: { //SUBU
+					EX_MEM.ALUOutput = EX_MEM.B - EX_MEM.A;
+					break;
+				}
+				case 0b100100: {//AND
+					EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;
+					break;
+				}
+				case 0b100101: {//OR
+					EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;
+					break;
+				}
+				case 0b100110: {//XOR
+					EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;
+					break;
+				}
+				case 0b100111: {//NOR
+					EX_MEM.ALUOutput = (~EX_MEM.A) & (~EX_MEM.B);
+					break;
+				}
+				case 0b101010: {//SLT
+					uint32_t result = EX_MEM.A - EX_MEM.B;
+					EX_MEM.ALUOutput = result < 0xF0000000 ? 0 : 1;
+					break;
+				}
+				case 0b011010: { //DIV
+					EX_MEM.LO = EX_MEM.A / EX_MEM.B;
+					EX_MEM.HI = EX_MEM.A % EX_MEM.B;
+					break;
+				}
+				case 0b011011: { //DIVU
+					EX_MEM.LO = EX_MEM.A / EX_MEM.B;
+					EX_MEM.HI = EX_MEM.A % EX_MEM.B;
+					break;
+				}
+				case 0b010000: { //MFHI
+					break;
+				}
+				case 0b010010: { //MFLO
+					break;
+				}
+				case 0b010001: { //MTHI
+					EX_MEM.ALUOutput = EX_MEM.A;
+					break;
+				}
+				case 0b010011: { //MTLO
+					EX_MEM.ALUOutput = EX_MEM.A;
+					break;
+				}
+				case 0x0C: { //SYSTEMCALL
+					break;
+				}
+				default: {
+					//printf("this instruction has not been handled\t");
+				}
 			}
 		}
-	}
-	else { //if opcode is anything else this is an I or J type instruction
-		switch(opcode) {
-			case 0b001000: { //ADDI 001000 (for signed ints)
-				if(EX_MEM.imm >> 15) {	// then negative number
-					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+		else { //if opcode is anything else this is an I or J type instruction
+			switch(opcode) {
+				case 0b001000: { //ADDI 001000 (for signed ints)
+					if(EX_MEM.imm >> 15) {	// then negative number
+						EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+					}
+					uint8_t bit30carry = (((EX_MEM.imm >> 30) & 0x1) + (0x1 & (EX_MEM.A >> 30))) >> 1;
+					uint8_t bit31carry = (((EX_MEM.imm >> 31) & 0x1) + (0x1 & (EX_MEM.A >> 31))) >> 1; //check for overflow
+					if (bit30carry == bit31carry) //check for overflow exception
+						EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
+					break;
 				}
-				uint8_t bit30carry = (((EX_MEM.imm >> 30) & 0x1) + (0x1 & (EX_MEM.A >> 30))) >> 1;
-				uint8_t bit31carry = (((EX_MEM.imm >> 31) & 0x1) + (0x1 & (EX_MEM.A >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
+				case 0b001001: { //ADDIU 001001 (for unsigned ints)
+					if(EX_MEM.imm >> 15) {	// then negative number
+						EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+					}
 					EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
-				break;
-			}
-			case 0b001001: { //ADDIU 001001 (for unsigned ints)
-				if(EX_MEM.imm >> 15) {	// then negative number
-					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+					break;
 				}
-				EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
-				break;
-			}
-			case 0b001100: { //ANDI
-				EX_MEM.ALUOutput = EX_MEM.imm & EX_MEM.A;
-				break;
-			}
-			case 0b001101: { //ORI
-				EX_MEM.ALUOutput = EX_MEM.imm | EX_MEM.A;
-				break;
-			}
-			case 0b001110: { //XORI
-				EX_MEM.ALUOutput = EX_MEM.imm ^ EX_MEM.A;
-				break;
-			}
-			case 0b001111: { //LUI
-				EX_MEM.ALUOutput = EX_MEM.imm << 16; //shift immediate and place into rt
-				break;
-			}
-			case 0b001010: { //SLTI
-				if(EX_MEM.imm >> 15) {	// then negative number
-					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+				case 0b001100: { //ANDI
+					EX_MEM.ALUOutput = EX_MEM.imm & EX_MEM.A;
+					break;
 				}
-				uint32_t result = EX_MEM.A - EX_MEM.imm;
-				EX_MEM.ALUOutput = result < 0xF0000000 ? 0 : 1;
-				break;
-			}
-			case 0b100000: //LB
-			case 0b100001: //LH
-			case 0b100011: //LW
-			case 0b101000: //SB
-			case 0b101001: //SH
-			case 0b101011: { //SW
-				if(EX_MEM.imm >> 15) {	// then negative number
-					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+				case 0b001101: { //ORI
+					EX_MEM.ALUOutput = EX_MEM.imm | EX_MEM.A;
+					break;
 				}
-				EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
-				break;
-			}
-			default: {
-				printf("this instruction has not been handled\t");
+				case 0b001110: { //XORI
+					EX_MEM.ALUOutput = EX_MEM.imm ^ EX_MEM.A;
+					break;
+				}
+				case 0b001111: { //LUI
+					EX_MEM.ALUOutput = EX_MEM.imm << 16; //shift immediate and place into rt
+					break;
+				}
+				case 0b001010: { //SLTI
+					if(EX_MEM.imm >> 15) {	// then negative number
+						EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+					}
+					uint32_t result = EX_MEM.A - EX_MEM.imm;
+					EX_MEM.ALUOutput = result < 0xF0000000 ? 0 : 1;
+					break;
+				}
+				case 0b100000: //LB
+				case 0b100001: //LH
+				case 0b100011: //LW
+				case 0b101000: //SB
+				case 0b101001: //SH
+				case 0b101011: { //SW
+					if(EX_MEM.imm >> 15) {	// then negative number
+						EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+					}
+					EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
+					break;
+				}
+				default: {
+					printf("this instruction has not been handled\t");
+				}
 			}
 		}
 	}
@@ -756,144 +781,173 @@ void EX()
 /************************************************************/
 void ID() //step 2
 {
-	ID_EX.IR = IF_ID.IR;
-	ID_EX.PC = IF_ID.PC;
-	ID_EX.imm = 0;
-	ID_EX.A = 0;
-	ID_EX.B = 0;
-
-	//should sa be stored in imm or A/B?
-	uint8_t opcode = (IF_ID.IR & 0xFC000000) >> 26;
-	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
-		opcode = IF_ID.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
-		switch(opcode) {
-			case 0b000000: { //SLL
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b000010: { //SRL
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b000011: { //SRA
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				//sign extend in the EX() stage I think
-				ID_EX.imm = rstruct.shamt;
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b011000: { //MULT
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b011001: { //MULTU
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100000: { //ADD
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100001: { //ADDU
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100010: { //SUB
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100011: { //SUBU
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100100: {//AND
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100101: {//OR
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100110: {//XOR
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b100111: {//NOR
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b101010: {//SLT
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b011010: { //DIV
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b011011: { //DIVU
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
-				break;
-			}
-			case 0b010000: { //MFHI
-				break;
-			}
-			case 0b010010: { //MFLO
-				break;
-			}
-			case 0b010001: { //MTHI
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
-			case 0b010011: { //MTLO
-				r_type_struct rstruct = parse_r_type(IF_ID.IR);
-				ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-				break;
-			}
-			case 0x0C: { //SYSTEMCALL
-				break;
-			}
-			default: {
-				printf("this instruction has not been handled\t");
-			}
-		}
+	if(stalled > 0) {
+		ID_EX.stalled = 1;
+		stalled--;
 	}
-	else { //if opcode is anything else this is an I or J type instruction
-		i_type_struct istruct = parse_i_type(IF_ID.IR);
-		ID_EX.A = CURRENT_STATE.REGS[istruct.rs];
-		ID_EX.B = CURRENT_STATE.REGS[istruct.rt];
-		ID_EX.imm = istruct.immediate;
+	else {
+	
+		ID_EX.IR = IF_ID.IR;
+		ID_EX.PC = IF_ID.PC;
+		ID_EX.imm = 0;
+		ID_EX.A = 0;
+		ID_EX.B = 0;
+		ID_EX.RegWrite = 0;	
+		ID_EX.RegisterRt = 0;
+		ID_EX.RegisterRd = 0;
+		ID_EX.RegisterRs = 0;
+	
+		uint8_t opcode = (IF_ID.IR & 0xFC000000) >> 26;
+		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
+			opcode = IF_ID.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+			switch(opcode) {
+				case 0b000000: { //SLL
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.imm = rstruct.shamt;
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b000010: { //SRL
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.imm = rstruct.shamt;
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b000011: { //SRA
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					//sign extend in the EX() stage I think
+					ID_EX.imm = rstruct.shamt;
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b011000: { //MULT
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b011001: { //MULTU
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100000: { //ADD
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100001: { //ADDU
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100010: { //SUB
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100011: { //SUBU
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100100: {//AND
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100101: {//OR
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100110: {//XOR
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b100111: {//NOR
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b101010: {//SLT
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b011010: { //DIV
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b011011: { //DIVU
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					break;
+				}
+				case 0b010000: { //MFHI
+					break;
+				}
+				case 0b010010: { //MFLO
+					break;
+				}
+				case 0b010001: { //MTHI
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					break;
+				}
+				case 0b010011: { //MTLO
+					r_type_struct rstruct = parse_r_type(IF_ID.IR);
+					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					break;
+				}
+				case 0x0C: { //SYSTEMCALL
+					break;
+				}
+				default: {
+					printf("this instruction has not been handled\t");
+				}
+			}
+			r_type_struct rstruct = parse_r_type(IF_ID.IR);
+			ID_EX.RegisterRs = rstruct.rs;
+			ID_EX.RegisterRt = rstruct.rt;
+			ID_EX.RegisterRd = rstruct.rd;
+			ID_EX.RegWrite = 1;
+		}
+		else { //if opcode is anything else this is an I or J type instruction
+			i_type_struct istruct = parse_i_type(IF_ID.IR);
+			ID_EX.A = CURRENT_STATE.REGS[istruct.rs];
+			ID_EX.B = CURRENT_STATE.REGS[istruct.rt];
+			ID_EX.imm = istruct.immediate;
+			ID_EX.RegisterRs = istruct.rs;
+			ID_EX.RegisterRt = istruct.rt;
+			ID_EX.RegisterRt = 0;
+		
+			switch(opcode) {
+				case 0b101000: //SB
+				case 0b101001: //SH
+				case 0b101011: { //SW
+					ID_EX.RegWrite = 0;			
+				}
+				default: {
+					ID_EX.RegWrite = 1;
+				}
+			}
 
+		}
 	}
 }
 
@@ -926,6 +980,15 @@ r_type_struct parse_r_type(uint32_t instruction) {
 	return rstruct;
 }
 
+/************************************************************/
+/* Check for Hazard                                                                                                   */
+/************************************************************/
+void check_data_hazard() {
+	if (EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRs))
+		stalled = 2;
+	if (EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRt))
+		stalled = 2;
+}
 
 /************************************************************/
 /* Initialize Memory                                                                                                    */
@@ -935,6 +998,8 @@ void initialize() {
 	CURRENT_STATE.PC = MEM_TEXT_BEGIN;
 	NEXT_STATE = CURRENT_STATE;
 	RUN_FLAG = TRUE;
+	ENABLE_FORWARDING = FALSE;
+	stalled = 0;
 }
 
 /************************************************************/
@@ -957,17 +1022,10 @@ void print_program(){
 /* Print the instruction at given memory address (in MIPS assembly format)    */
 /************************************************************/
 void print_instruction(uint32_t addr){
-	/*IMPLEMENT THIS*/
-
-
-	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
-	//printf("Test1\n");
-
 	//read first instruction from memory
 	uint32_t instruction = mem_read_32(addr);
 
 	//check for i or j or r type
-	//printf("%x\n", instruction);
 	uint8_t opcode = (instruction & 0xFC000000) >> 26;
 
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -1255,9 +1313,9 @@ void print_instruction(uint32_t addr){
 /* Print the current pipeline                                                                                    */
 /************************************************************/
 void show_pipeline(){
-	/*IMPLEMENT THIS*/
-
 	printf("\nCurrent PC: %x\n", CURRENT_STATE.PC);
+	printf("\nStalled cycles: %x\n", stalled);
+	
 	printf("IF/ID.IR: %x\n", IF_ID.IR);
 	printf("IF/ID.PC: %x\n\n", IF_ID.PC);
 
@@ -1265,6 +1323,7 @@ void show_pipeline(){
 	printf("ID/EX.A: %x\n", ID_EX.A);
 	printf("ID/EX.B: %x\n", ID_EX.B);
 	printf("ID/EX.imm: %x\n\n", ID_EX.imm);
+	//printf("ID/EX.stalled: %x\n", ID/EX.stalled);
 
 	printf("EX/MEM.IR: %x\n", EX_MEM.IR);
 	printf("EX/MEM.ALUOutput: %x\n", EX_MEM.ALUOutput);
@@ -1273,6 +1332,7 @@ void show_pipeline(){
 	printf("EX/MEM.B: %x\n", EX_MEM.B);
 	printf("EX/MEM.HI: %x\n", EX_MEM.HI);
 	printf("EX/MEM.LO: %x\n\n", EX_MEM.LO);
+	//printf("EX/MEM.stalled: %x\n", EX/MEM.stalled);
 
 	printf("MEM/WB.IR: %x\n", MEM_WB.IR);
 	printf("MEM/WB.ALUOutput: %x\n", MEM_WB.ALUOutput);
@@ -1282,6 +1342,7 @@ void show_pipeline(){
 	printf("MEM/WB.B: %x\n", MEM_WB.B);
 	printf("MEM/WB.HI: %x\n", MEM_WB.HI);
 	printf("MEM/WB.LO: %x\n", MEM_WB.LO);
+	printf("MEM/WB.stalled: %x\n", MEM_WB.stalled);
 
 }
 

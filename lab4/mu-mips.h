@@ -55,7 +55,11 @@ typedef struct CPU_Pipeline_Reg_Struct{
 	uint32_t LO;
 	uint32_t HI;
 	uint32_t LMD;
-	
+	uint32_t RegWrite;
+	uint32_t RegisterRd;
+	uint32_t RegisterRs;
+	uint32_t RegisterRt;
+	int stalled;
 } CPU_Pipeline_Reg;
 
 /***************************************************************/
@@ -67,6 +71,7 @@ int RUN_FLAG;	/* run flag*/
 uint32_t INSTRUCTION_COUNT;
 uint32_t CYCLE_COUNT;
 uint32_t PROGRAM_SIZE; /*in words*/
+int stalled;
 
 
 /***************************************************************/
@@ -78,6 +83,8 @@ CPU_Pipeline_Reg EX_MEM;
 CPU_Pipeline_Reg MEM_WB;
 
 char prog_file[32];
+
+int ENABLE_FORWARDING;
 
 
 /***************************************************************/
@@ -124,4 +131,5 @@ typedef struct j_type_structure {
 i_type_struct parse_i_type(uint32_t instruction);
 r_type_struct parse_r_type(uint32_t instruction);
 j_type_struct parse_j_type(uint32_t instruction);
+void check_data_hazard();
 
