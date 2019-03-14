@@ -9,7 +9,7 @@
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
 /***************************************************************/
-void help() {        
+void help() {
 	printf("------------------------------------------------------------------\n\n");
 	printf("\t**********MU-MIPS Help MENU**********\n\n");
 	printf("sim\t-- simulate program to completion \n");
@@ -67,7 +67,7 @@ void mem_write_32(uint32_t address, uint32_t value)
 /***************************************************************/
 /* Execute one cycle                                                                                                              */
 /***************************************************************/
-void cycle() {                                                
+void cycle() {
 	handle_pipeline();
 	CURRENT_STATE = NEXT_STATE;
 	CYCLE_COUNT++;
@@ -76,8 +76,8 @@ void cycle() {
 /***************************************************************/
 /* Simulate MIPS for n cycles                                                                                       */
 /***************************************************************/
-void run(int num_cycles) {                                      
-	
+void run(int num_cycles) {
+
 	if (RUN_FLAG == FALSE) {
 		printf("Simulation Stopped\n\n");
 		return;
@@ -97,7 +97,7 @@ void run(int num_cycles) {
 /***************************************************************/
 /* simulate to completion                                                                                               */
 /***************************************************************/
-void runAll() {                                                     
+void runAll() {
 	if (RUN_FLAG == FALSE) {
 		printf("Simulation Stopped.\n\n");
 		return;
@@ -110,10 +110,10 @@ void runAll() {
 	printf("Simulation Finished.\n\n");
 }
 
-/***************************************************************/ 
+/***************************************************************/
 /* Dump a word-aligned region of memory to the terminal                              */
 /***************************************************************/
-void mdump(uint32_t start, uint32_t stop) {          
+void mdump(uint32_t start, uint32_t stop) {
 	uint32_t address;
 
 	printf("-------------------------------------------------------------\n");
@@ -127,10 +127,10 @@ void mdump(uint32_t start, uint32_t stop) {
 }
 
 /***************************************************************/
-/* Dump current values of registers to the terminal                                              */   
+/* Dump current values of registers to the terminal                                              */
 /***************************************************************/
-void rdump() {                               
-	int i; 
+void rdump() {
+	int i;
 	printf("-------------------------------------\n");
 	printf("Dumping Register Content\n");
 	printf("-------------------------------------\n");
@@ -150,9 +150,9 @@ void rdump() {
 }
 
 /***************************************************************/
-/* Read a command from standard input.                                                               */  
+/* Read a command from standard input.                                                               */
 /***************************************************************/
-void handle_command() {                         
+void handle_command() {
 	char buffer[20];
 	uint32_t start, stop, cycles;
 	uint32_t register_no;
@@ -171,7 +171,7 @@ void handle_command() {
 			if (buffer[1] == 'h' || buffer[1] == 'H'){
 				show_pipeline();
 			}else {
-				runAll(); 
+				runAll();
 			}
 			break;
 		case 'M':
@@ -217,8 +217,8 @@ void handle_command() {
 			if (scanf("%i", &hi_reg_value) != 1){
 				break;
 			}
-			CURRENT_STATE.HI = hi_reg_value; 
-			NEXT_STATE.HI = hi_reg_value; 
+			CURRENT_STATE.HI = hi_reg_value;
+			NEXT_STATE.HI = hi_reg_value;
 			break;
 		case 'L':
 		case 'l':
@@ -230,7 +230,7 @@ void handle_command() {
 			break;
 		case 'P':
 		case 'p':
-			print_program(); 
+			print_program();
 			break;
 		default:
 			printf("Invalid Command.\n");
@@ -241,7 +241,7 @@ void handle_command() {
 /***************************************************************/
 /* reset registers/memory and reload program                                                    */
 /***************************************************************/
-void reset() {   
+void reset() {
 	int i;
 	/*reset registers*/
 	for (i = 0; i < MIPS_REGS; i++){
@@ -249,15 +249,15 @@ void reset() {
 	}
 	CURRENT_STATE.HI = 0;
 	CURRENT_STATE.LO = 0;
-	
+
 	for (i = 0; i < NUM_MEM_REGION; i++) {
 		uint32_t region_size = MEM_REGIONS[i].end - MEM_REGIONS[i].begin + 1;
 		memset(MEM_REGIONS[i].mem, 0, region_size);
 	}
-	
+
 	/*load program*/
 	load_program();
-	
+
 	/*reset PC*/
 	INSTRUCTION_COUNT = 0;
 	CURRENT_STATE.PC =  MEM_TEXT_BEGIN;
@@ -268,7 +268,7 @@ void reset() {
 /***************************************************************/
 /* Allocate and set memory to zero                                                                            */
 /***************************************************************/
-void init_memory() {                                           
+void init_memory() {
 	int i;
 	for (i = 0; i < NUM_MEM_REGION; i++) {
 		uint32_t region_size = MEM_REGIONS[i].end - MEM_REGIONS[i].begin + 1;
@@ -280,7 +280,7 @@ void init_memory() {
 /**************************************************************/
 /* load program into memory                                                                                      */
 /**************************************************************/
-void load_program() {                   
+void load_program() {
 	FILE * fp;
 	int i, word;
 	uint32_t address;
@@ -307,13 +307,13 @@ void load_program() {
 }
 
 /************************************************************/
-/* maintain the pipeline                                                                                           */ 
+/* maintain the pipeline                                                                                           */
 /************************************************************/
 void handle_pipeline()
 {
 	/*INSTRUCTION_COUNT should be incremented when instruction is done*/
 	/*Since we do not have branch/jump instructions, INSTRUCTION_COUNT should be incremented in WB stage */
-	
+	NEXT_STATE = CURRENT_STATE;
 	WB();
 	MEM();
 	EX();
@@ -322,148 +322,98 @@ void handle_pipeline()
 }
 
 /************************************************************/
-/* writeback (WB) pipeline stage:                                                                          */ 
+/* writeback (WB) pipeline stage:                                                                          */
 /************************************************************/
 void WB()
 {
-	//i think this whole block will go away
-	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.PC = EX_MEM.PC;
-	MEM_WB.imm = EX_MEM.imm;
-	MEM_WB.A = EX_MEM.A;
-	MEM_WB.B = EX_MEM.B;
-	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-	MEM_WB.LMD = 0;
-
-	/*uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+	INSTRUCTION_COUNT++;
+	uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 	if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 		opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+		int rd = (MEM_WB.IR & 0x0000F800) >> 11;
 		switch(opcode) {
 			case 0b000000: { //SLL
-				CURRENT_STATE.REGS[(MEM_WB.IR & 0x0000F800) >> 11] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b000010: { //SRL
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b000011: { //SRA
-				r_type_struct rstruct = parse_r_type(instruction);
-				if(CURRENT_STATE.REGS[rstruct.rt] >> 31) {//if negative, sign extend
-					uint32_t extension = 0xFFFFFFFF << (32-rstruct.shamt);
-					NEXT_STATE.REGS[rstruct.rd] = extension | (CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt);
-				}
-				else //else same as SRL
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] >> rstruct.shamt;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b011000: { //MULT
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
-				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
-				if(rt >> 31) {	// then negative number
-					rt = 0xFFFFFFFF00000000 | rt; //sign extend with 1's
-				}
-				if(rs >> 31) {	// then negative number
-					rs = 0xFFFFFFFF00000000 | rs; //sign extend with 1's
-				}
-				uint64_t result = rt * rs;
-				NEXT_STATE.LO = (result); //low bit
-				NEXT_STATE.HI = (result) >> 32; //high part
+				NEXT_STATE.HI = MEM_WB.HI;
+				NEXT_STATE.LO = MEM_WB.LO;
 				break;
 			}
 			case 0b011001: { //MULTU
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint64_t rt = CURRENT_STATE.REGS[rstruct.rt];
-				uint64_t rs = CURRENT_STATE.REGS[rstruct.rs];
-				uint64_t result = rt*rs;
-				NEXT_STATE.LO = (result);// & 0xFFFFFFFF; //low bit
-				NEXT_STATE.HI = (result) >> 32; //high part
+				NEXT_STATE.HI = MEM_WB.HI;
+				NEXT_STATE.LO = MEM_WB.LO;
 				break;
 			}
 			case 0b100000: { //ADD
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100001: { //ADDIU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rt] + CURRENT_STATE.REGS[rstruct.rs];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100010: { //SUB
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint8_t bit30carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((CURRENT_STATE.REGS[rstruct.rt] >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[rstruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100011: { //SUBU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100100: {//AND
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] & CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100101: {//OR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] | CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100110: {//XOR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.REGS[rstruct.rs] ^ CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100111: {//NOR
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = (~CURRENT_STATE.REGS[rstruct.rs]) & (~CURRENT_STATE.REGS[rstruct.rt]);
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b101010: {//SLT
-				r_type_struct rstruct = parse_r_type(instruction);
-				uint32_t result = CURRENT_STATE.REGS[rstruct.rs] - CURRENT_STATE.REGS[rstruct.rt];
-				NEXT_STATE.REGS[rstruct.rd] = result < 0xF0000000 ? 0 : 1;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b011010: { //DIV
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs] / CURRENT_STATE.REGS[rstruct.rt];
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs] % CURRENT_STATE.REGS[rstruct.rt];
+				NEXT_STATE.HI = MEM_WB.HI;
+				NEXT_STATE.LO = MEM_WB.LO;
 				break;
 			}
 			case 0b011011: { //DIVU
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = (CURRENT_STATE.REGS[rstruct.rs]) / (CURRENT_STATE.REGS[rstruct.rt]);
-				NEXT_STATE.HI = (CURRENT_STATE.REGS[rstruct.rs]) % (CURRENT_STATE.REGS[rstruct.rt]);
+				NEXT_STATE.HI = MEM_WB.HI;
+				NEXT_STATE.LO = MEM_WB.LO;
 				break;
 			}
 			case 0b010000: { //MFHI
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.HI;
+				NEXT_STATE.REGS[rd] = MEM_WB.HI;
 				break;
 			}
 			case 0b010010: { //MFLO
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.REGS[rstruct.rd] = CURRENT_STATE.LO;
+				NEXT_STATE.REGS[rd] = MEM_WB.LO;
 				break;
 			}
 			case 0b010001: { //MTHI
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rstruct.rs];
+				NEXT_STATE.HI = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b010011: { //MTLO
-				r_type_struct rstruct = parse_r_type(instruction);
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rstruct.rs];
+				NEXT_STATE.LO = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0x0C: { //SYSTEMCALL
@@ -480,135 +430,66 @@ void WB()
 		}
 	}
 	else { //if opcode is anything else this is an I or J type instruction
+		int rt = (MEM_WB.IR & 0x001F0000) >> 16;
 		switch(opcode) {
 			case 0b001000: { //ADDI 001000 (for signed ints)
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				uint8_t bit30carry = (((immediate >> 30) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 30))) >> 1;
-				uint8_t bit31carry = (((immediate >> 31) & 0x1) + (0x1 & (CURRENT_STATE.REGS[istruct.rs] >> 31))) >> 1; //check for overflow
-				if (bit30carry == bit31carry) //check for overflow exception
-					NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001001: { //ADDIU 001001 (for unsigned ints)
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				NEXT_STATE.REGS[istruct.rt] = immediate + CURRENT_STATE.REGS[istruct.rs];
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001100: { //ANDI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] & istruct.immediate;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001101: { //ORI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] | istruct.immediate;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001110: { //XORI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = CURRENT_STATE.REGS[istruct.rs] ^ istruct.immediate;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001111: { //LUI
-				i_type_struct istruct = parse_i_type(instruction);
-				NEXT_STATE.REGS[istruct.rt] = istruct.immediate << 16; //shift immediate and place into rt
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b001010: { //SLTI
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t immediate = istruct.immediate;
-				if(immediate >> 15) {	// then negative number
-					immediate = 0xFFFF0000 | immediate; //sign extend with 1's
-				}
-				uint32_t result = CURRENT_STATE.REGS[istruct.rs] - immediate;
-				NEXT_STATE.REGS[istruct.rt] = result < 0xF0000000 ? 0 : 1;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			}
 			case 0b100000: { //LB
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				uint32_t byte = 0xFF & mem_read_32(address);
-				if(byte >> 7) {	// then negative number
-					byte = (0xFFFFFF00 | byte); //sign extend with 1's
-				}
-				NEXT_STATE.REGS[istruct.rt] = byte;
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			}
 			case 0b100001: { //LH
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				uint32_t halfword = 0xFFFF & mem_read_32(address);
-				if(halfword >> 15) {	// then negative number
-					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
-				}
-				NEXT_STATE.REGS[istruct.rt] = halfword;
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			}
 			case 0b100011: { //LW
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				NEXT_STATE.REGS[istruct.rt] = mem_read_32(address);
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			}
 			case 0b101000: { //SB
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFF);
 				break;
 			}
 			case 0b101001: { //SH
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt] & 0xFFFF);
 				break;
 			}
 			case 0b101011: { //SW
-				i_type_struct istruct = parse_i_type(instruction);
-				uint32_t address = istruct.offset;
-				if(address >> 15) {	// then negative number
-					address = 0xFFFF0000 | address; //sign extend with 1's
-				}
-				address += CURRENT_STATE.REGS[istruct.base];
-				mem_write_32(address,CURRENT_STATE.REGS[istruct.rt]);
 				break;
 			}
 			default: {
 				printf("this instruction has not been handled\t");
 			}
 		}
-	}*/
+	}
 }
 
 /************************************************************/
-/* memory access (MEM) pipeline stage:                                                          */ 
+/* memory access (MEM) pipeline stage:                                                          */
 /************************************************************/
 void MEM()
 {
@@ -644,7 +525,6 @@ void MEM()
 				if(byte >> 7) {	// then negative number
 					byte = (0xFFFFFF00 | byte); //sign extend with 1's
 				}
-
 				MEM_WB.LMD = byte;
 				break;
 			}
@@ -653,13 +533,11 @@ void MEM()
 				if(halfword >> 15) {	// then negative number
 					halfword = (0xFFFF0000 | halfword); //sign extend with 1's
 				}
-
 				MEM_WB.LMD = halfword;
 				break;
 			}
 			case 0b100011: { //LW
 				uint32_t word = mem_read_32(EX_MEM.ALUOutput);
-
 				MEM_WB.LMD = word;
 				break;
 			}
@@ -677,14 +555,14 @@ void MEM()
 			}
 			default: {
 				//printf("this instruction has not been handled\t");
-				//No an instruction accessing memory
+				//Not an instruction accessing memory
 			}
 		}
 	}
 }
 
 /************************************************************/
-/* execution (EX) pipeline stage:                                                                          */ 
+/* execution (EX) pipeline stage:                                                                          */
 /************************************************************/
 void EX()
 {
@@ -796,7 +674,7 @@ void EX()
 				break;
 			}
 			case 0b010001: { //MTHI
-				EX_MEM.ALUOutput = EX_MEM.A;		
+				EX_MEM.ALUOutput = EX_MEM.A;
 				break;
 			}
 			case 0b010011: { //MTLO
@@ -874,7 +752,7 @@ void EX()
 }
 
 /************************************************************/
-/* instruction decode (ID) pipeline stage:                                                         */ 
+/* instruction decode (ID) pipeline stage:                                                         */
 /************************************************************/
 void ID() //step 2
 {
@@ -1003,8 +881,6 @@ void ID() //step 2
 				break;
 			}
 			case 0x0C: { //SYSTEMCALL
-				//I don't think we do anything here
-				printf("SYSCALL\n");
 				break;
 			}
 			default: {
@@ -1019,16 +895,16 @@ void ID() //step 2
 		ID_EX.imm = istruct.immediate;
 
 	}
-
 }
 
 /************************************************************/
-/* instruction fetch (IF) pipeline stage:                                                              */ 
+/* instruction fetch (IF) pipeline stage:                                                              */
 /************************************************************/
 void IF() //step 1
 {
-	IF_ID.IR = mem_read_32(IF_ID.PC);
-	IF_ID.PC = IF_ID.PC + sizeof(uint32_t); //increment counter
+	IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
+	IF_ID.PC = CURRENT_STATE.PC + sizeof(uint32_t); //increment counter
+	NEXT_STATE.PC = IF_ID.PC;
 }
 
 i_type_struct parse_i_type(uint32_t instruction) {
@@ -1052,9 +928,9 @@ r_type_struct parse_r_type(uint32_t instruction) {
 
 
 /************************************************************/
-/* Initialize Memory                                                                                                    */ 
+/* Initialize Memory                                                                                                    */
 /************************************************************/
-void initialize() { 
+void initialize() {
 	init_memory();
 	CURRENT_STATE.PC = MEM_TEXT_BEGIN;
 	NEXT_STATE = CURRENT_STATE;
@@ -1062,7 +938,7 @@ void initialize() {
 }
 
 /************************************************************/
-/* Print the program loaded into memory (in MIPS assembly format)    */ 
+/* Print the program loaded into memory (in MIPS assembly format)    */
 /************************************************************/
 void print_program(){
 	/*IMPLEMENT THIS*/
@@ -1376,7 +1252,7 @@ void print_instruction(uint32_t addr){
 
 
 /************************************************************/
-/* Print the current pipeline                                                                                    */ 
+/* Print the current pipeline                                                                                    */
 /************************************************************/
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
@@ -1412,11 +1288,11 @@ void show_pipeline(){
 /***************************************************************/
 /* main                                                                                                                                   */
 /***************************************************************/
-int main(int argc, char *argv[]) {                              
+int main(int argc, char *argv[]) {
 	printf("\n**************************\n");
 	printf("Welcome to MU-MIPS SIM...\n");
 	printf("**************************\n\n");
-	
+
 	if (argc < 2) {
 		printf("Error: You should provide input file.\nUsage: %s <input program> \n\n",  argv[0]);
 		exit(1);
