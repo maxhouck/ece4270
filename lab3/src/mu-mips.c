@@ -1380,6 +1380,33 @@ void print_instruction(uint32_t addr){
 /************************************************************/
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
+
+	printf("\nCurrent PC: %x\n", CURRENT_STATE.PC);
+	printf("IF/ID.IR: %x\n", IF_ID.IR);
+	printf("IF/ID.PC: %x\n\n", IF_ID.PC);
+
+	printf("ID/EX.IR: %x\n", ID_EX.IR);
+	printf("ID/EX.A: %x\n", ID_EX.A);
+	printf("ID/EX.B: %x\n", ID_EX.B);
+	printf("ID/EX.imm: %x\n\n", ID_EX.imm);
+
+	printf("EX/MEM.IR: %x\n", EX_MEM.IR);
+	printf("EX/MEM.ALUOutput: %x\n", EX_MEM.ALUOutput);
+	printf("EX/MEM.imm: %x\n", EX_MEM.imm);
+	printf("EX/MEM.A: %x\n", EX_MEM.A);
+	printf("EX/MEM.B: %x\n", EX_MEM.B);
+	printf("EX/MEM.HI: %x\n", EX_MEM.HI);
+	printf("EX/MEM.LO: %x\n\n", EX_MEM.LO);
+
+	printf("MEM/WB.IR: %x\n", MEM_WB.IR);
+	printf("MEM/WB.ALUOutput: %x\n", MEM_WB.ALUOutput);
+	printf("MEM/WB.LMD: %x\n", MEM_WB.LMD);
+	printf("MEM/WB.imm: %x\n", MEM_WB.imm);
+	printf("MEM/WB.A: %x\n", MEM_WB.A);
+	printf("MEM/WB.B: %x\n", MEM_WB.B);
+	printf("MEM/WB.HI: %x\n", MEM_WB.HI);
+	printf("MEM/WB.LO: %x\n", MEM_WB.LO);
+
 }
 
 /***************************************************************/
