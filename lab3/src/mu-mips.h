@@ -104,6 +104,7 @@ void IF();/*IMPLEMENT THIS*/
 void show_pipeline();/*IMPLEMENT THIS*/
 void initialize();
 void print_program(); /*IMPLEMENT THIS*/
+void print_instruction(uint32_t addr);
 
 typedef struct r_type_structure {
   uint8_t rs, rt, rd, shamt;
