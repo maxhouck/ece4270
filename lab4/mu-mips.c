@@ -519,6 +519,7 @@ void MEM()
 		MEM_WB.RegisterRt = EX_MEM.RegisterRt;
 		MEM_WB.RegisterRd = EX_MEM.RegisterRd;
 		MEM_WB.RegisterRs = EX_MEM.RegisterRs;
+		MEM_WB.RegWrite = EX_MEM.RegWrite;
 
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -598,6 +599,7 @@ void EX()
 		EX_MEM.RegisterRt = ID_EX.RegisterRt;
 		EX_MEM.RegisterRd = ID_EX.RegisterRd;
 		EX_MEM.RegisterRs = ID_EX.RegisterRs;
+		EX_MEM.RegWrite = ID_EX.RegWrite;
 
 		uint8_t opcode = (EX_MEM.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -800,118 +802,109 @@ void ID() //step 2
 		uint8_t opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 			opcode = IF_ID.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
+			r_type_struct rstruct = parse_r_type(IF_ID.IR);
+			ID_EX.RegisterRs = rstruct.rs;
+			ID_EX.RegisterRt = rstruct.rt;
+			ID_EX.RegisterRd = rstruct.rt;
+			ID_EX.RegWrite = 1;
 			switch(opcode) {
 				case 0b000000: { //SLL
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.imm = rstruct.shamt;
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000010: { //SRL
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.imm = rstruct.shamt;
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000011: { //SRA
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					//sign extend in the EX() stage I think
 					ID_EX.imm = rstruct.shamt;
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011000: { //MULT
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011001: { //MULTU
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100000: { //ADD
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100001: { //ADDU
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100010: { //SUB
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100011: { //SUBU
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100100: {//AND
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100101: {//OR
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100110: {//XOR
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100111: {//NOR
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b101010: {//SLT
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011010: { //DIV
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011011: { //DIVU
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
 					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b010000: { //MFHI
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b010010: { //MFLO
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b010001: { //MTHI
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.RegWrite=0;
 					break;
 				}
 				case 0b010011: { //MTLO
-					r_type_struct rstruct = parse_r_type(IF_ID.IR);
 					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.RegWrite=0;
 					break;
 				}
 				case 0x0C: { //SYSTEMCALL
@@ -921,11 +914,7 @@ void ID() //step 2
 					printf("this instruction has not been handled\t");
 				}
 			}
-			r_type_struct rstruct = parse_r_type(IF_ID.IR);
-			ID_EX.RegisterRs = rstruct.rs;
-			ID_EX.RegisterRt = rstruct.rt;
-			ID_EX.RegisterRd = rstruct.rd;
-			ID_EX.RegWrite = 1;
+
 		}
 		else { //if opcode is anything else this is an I or J type instruction
 			i_type_struct istruct = parse_i_type(IF_ID.IR);
@@ -934,7 +923,7 @@ void ID() //step 2
 			ID_EX.imm = istruct.immediate;
 			ID_EX.RegisterRs = istruct.rs;
 			ID_EX.RegisterRt = istruct.rt;
-			ID_EX.RegisterRt = 0;
+			ID_EX.RegisterRd = istruct.rt;
 		
 			switch(opcode) {
 				case 0b101000: //SB
@@ -956,9 +945,14 @@ void ID() //step 2
 /************************************************************/
 void IF() //step 1
 {
-	IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
-	IF_ID.PC = CURRENT_STATE.PC + sizeof(uint32_t); //increment counter
-	NEXT_STATE.PC = IF_ID.PC;
+	if(stalled > 0) {
+		
+	}
+	else {
+		IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
+		IF_ID.PC = CURRENT_STATE.PC + sizeof(uint32_t); //increment counter
+		NEXT_STATE.PC = IF_ID.PC;
+	}
 }
 
 i_type_struct parse_i_type(uint32_t instruction) {
@@ -1277,6 +1271,7 @@ void print_instruction(uint32_t addr){
 				break;
 			}
 
+
 			case 0b000001: { //REGIMM 000001
 				i_type_struct istruct = parse_i_type(instruction);
 
@@ -1304,8 +1299,6 @@ void print_instruction(uint32_t addr){
 			}
 		}
 	}
-
-
 }
 
 
@@ -1314,16 +1307,20 @@ void print_instruction(uint32_t addr){
 /************************************************************/
 void show_pipeline(){
 	printf("\nCurrent PC: %x\n", CURRENT_STATE.PC);
-	printf("\nStalled cycles: %x\n", stalled);
+	printf("Stalled cycles: %x\n\n", stalled);
 	
 	printf("IF/ID.IR: %x\n", IF_ID.IR);
-	printf("IF/ID.PC: %x\n\n", IF_ID.PC);
+	printf("IF/ID.PC: %x\n", IF_ID.PC);
+	printf("IF/ID.RegWrite: %x\n\n", IF_ID.RegWrite);
 
 	printf("ID/EX.IR: %x\n", ID_EX.IR);
 	printf("ID/EX.A: %x\n", ID_EX.A);
 	printf("ID/EX.B: %x\n", ID_EX.B);
-	printf("ID/EX.imm: %x\n\n", ID_EX.imm);
-	//printf("ID/EX.stalled: %x\n", ID/EX.stalled);
+	printf("ID/EX.imm: %x\n", ID_EX.imm);
+	printf("ID/EX.RegWrite: %x\n", ID_EX.RegWrite);
+	printf("ID_EX.RegisterRs: %x\n", ID_EX.RegisterRs);
+	printf("ID_EX.RegisterRt: %x\n", ID_EX.RegisterRt);
+	printf("ID_EX.RegisterRd: %x\n\n", ID_EX.RegisterRd);
 
 	printf("EX/MEM.IR: %x\n", EX_MEM.IR);
 	printf("EX/MEM.ALUOutput: %x\n", EX_MEM.ALUOutput);
@@ -1331,18 +1328,22 @@ void show_pipeline(){
 	printf("EX/MEM.A: %x\n", EX_MEM.A);
 	printf("EX/MEM.B: %x\n", EX_MEM.B);
 	printf("EX/MEM.HI: %x\n", EX_MEM.HI);
-	printf("EX/MEM.LO: %x\n\n", EX_MEM.LO);
-	//printf("EX/MEM.stalled: %x\n", EX/MEM.stalled);
+	printf("EX/MEM.LO: %x\n", EX_MEM.LO);
+	printf("EX/MEM.RegWrite: %x\n", EX_MEM.RegWrite);
+	printf("EX_MEM.RegisterRs: %x\n", EX_MEM.RegisterRs);
+	printf("EX_MEM.RegisterRt: %x\n", EX_MEM.RegisterRt);
+	printf("EX_MEM.RegisterRd: %x\n\n", EX_MEM.RegisterRd);
 
 	printf("MEM/WB.IR: %x\n", MEM_WB.IR);
 	printf("MEM/WB.ALUOutput: %x\n", MEM_WB.ALUOutput);
 	printf("MEM/WB.LMD: %x\n", MEM_WB.LMD);
-	printf("MEM/WB.imm: %x\n", MEM_WB.imm);
+	printf("MEM/WB.imm: %x\n", MEM_WB.imm); 
 	printf("MEM/WB.A: %x\n", MEM_WB.A);
 	printf("MEM/WB.B: %x\n", MEM_WB.B);
 	printf("MEM/WB.HI: %x\n", MEM_WB.HI);
 	printf("MEM/WB.LO: %x\n", MEM_WB.LO);
 	printf("MEM/WB.stalled: %x\n", MEM_WB.stalled);
+	printf("MEM/WB.RegWrite: %x\n\n", MEM_WB.RegWrite);
 
 }
 
