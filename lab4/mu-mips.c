@@ -325,9 +325,9 @@ void handle_pipeline()
 	WB();
 	MEM();
 	EX();
-	check_data_hazard();
 	ID();
 	IF();
+	check_data_hazard();
 
 }
 
