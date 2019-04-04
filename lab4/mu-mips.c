@@ -327,7 +327,8 @@ void handle_pipeline()
 	EX();
 	ID();
 	IF();
-	check_data_hazard();
+	//TA says this should be done in the ID() stage
+	//check_data_hazard();
 
 }
 
@@ -938,6 +939,7 @@ void ID() //step 2
 
 		}
 	}
+	check_data_hazard();
 }
 
 /************************************************************/
@@ -982,6 +984,11 @@ void check_data_hazard() {
 		stalled = 2;
 	if (EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRt))
 		stalled = 2;
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRs))
+		stalled = 1;
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRt))
+		stalled = 1;
+
 }
 
 /************************************************************/
