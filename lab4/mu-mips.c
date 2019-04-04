@@ -337,6 +337,12 @@ void handle_pipeline()
 /************************************************************/
 void WB()
 {
+	/*
+	if(MEM_WB.IR == 0)
+	{
+		return;
+	}
+	*/
 	if(MEM_WB.stalled == 0) {
 		INSTRUCTION_COUNT++;
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
@@ -498,6 +504,13 @@ void WB()
 			}
 		}
 	}
+		if(stalled > 0)
+		{
+			stalled--;
+			printf("TEST\n");
+			printf("%d\n", stalled);
+		}
+		printf("TEST1\n");
 }
 
 /************************************************************/
@@ -505,9 +518,9 @@ void WB()
 /************************************************************/
 void MEM()
 {
-	if(EX_MEM.stalled == 1) 
-		MEM_WB.stalled = 1;
-	if(EX_MEM.stalled == 0) {
+	//if(EX_MEM.stalled == 1) 
+		//MEM_WB.stalled = 1;
+	//if(EX_MEM.stalled == 0) {
 		MEM_WB.IR = EX_MEM.IR;
 		MEM_WB.PC = EX_MEM.PC;
 		MEM_WB.imm = EX_MEM.imm;
@@ -523,6 +536,14 @@ void MEM()
 		MEM_WB.RegWrite = EX_MEM.RegWrite;
 
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+
+		//This may not be necessary.  IR set to 0 in ID.
+		//This just returns it instead.
+		if(MEM_WB.IR == 0) 
+		{
+			return;
+		}
+
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 			opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
 			switch(opcode) {
@@ -578,7 +599,7 @@ void MEM()
 				}
 			}
 		}
-	}
+	//}
 }
 
 /************************************************************/
@@ -586,8 +607,8 @@ void MEM()
 /************************************************************/
 void EX()
 {
-	if(ID_EX.stalled == 1) 
-		EX_MEM.stalled = 1;
+	//if(ID_EX.stalled == 1) 
+		//EX_MEM.stalled = 1;
 	if(ID_EX.stalled == 0) {
 		EX_MEM.IR = ID_EX.IR;
 		EX_MEM.PC = ID_EX.PC;
@@ -784,10 +805,14 @@ void EX()
 /************************************************************/
 void ID() //step 2
 {
+	
 	if(stalled > 0) {
-		ID_EX.stalled = 1;
-		stalled--;
+		//I don't remember why we had this
+		//ID_EX.stalled = 1;
+		//This should only be done once. Maybe in WB()
+		//stalled--;
 	}
+	
 	else {
 	
 		ID_EX.IR = IF_ID.IR;
@@ -795,7 +820,7 @@ void ID() //step 2
 		ID_EX.imm = 0;
 		ID_EX.A = 0;
 		ID_EX.B = 0;
-		ID_EX.RegWrite = 0;	
+		ID_EX.RegWrite = 0;
 		ID_EX.RegisterRt = 0;
 		ID_EX.RegisterRd = 0;
 		ID_EX.RegisterRs = 0;
@@ -936,10 +961,13 @@ void ID() //step 2
 					ID_EX.RegWrite = 1;
 				}
 			}
-
 		}
-	}
-	check_data_hazard();
+		check_data_hazard();
+		if(stalled > 0)
+		{
+			ID_EX.IR = 0; //Might not need this
+		}	
+	}			  
 }
 
 /************************************************************/
