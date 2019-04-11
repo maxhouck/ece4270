@@ -59,6 +59,7 @@ typedef struct CPU_Pipeline_Reg_Struct{
 	uint32_t RegisterRd;
 	uint32_t RegisterRs;
 	uint32_t RegisterRt;
+	uint32_t mem_access;
 	int stalled;
 } CPU_Pipeline_Reg;
 

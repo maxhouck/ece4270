@@ -447,7 +447,7 @@ void WB()
 					break;
 				}
 				case 0x0C: { //SYSTEMCALL
-					if(CURRENT_STATE.REGS[2] == 0xA)
+					if(NEXT_STATE.REGS[2] == 0xA)
 					{
 						RUN_FLAG = FALSE;
 					}
@@ -542,6 +542,7 @@ void MEM() {
 			return;
 		}
 		MEM_WB.IR = EX_MEM.IR;
+		MEM_WB.mem_access = EX_MEM.mem_access;
 		MEM_WB.PC = EX_MEM.PC;
 		MEM_WB.imm = EX_MEM.imm;
 		MEM_WB.A = EX_MEM.A;
@@ -566,8 +567,6 @@ void MEM() {
 		//MEM_WB.RegisterRd = (MEM_WB.IR & 0x0000F800) >> 11;
 
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
-
-
 
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
 			opcode = MEM_WB.IR & 0x00000003F; //switch opcode to the last 6 binary digits of instruction
@@ -650,6 +649,7 @@ void EX() {
 	}
 	if(ID_EX.stalled == 0)	{
 			printf("\nEX is running");
+			EX_MEM.mem_access = ID_EX.mem_access;
 			EX_MEM.stalled = ID_EX.stalled;
 			EX_MEM.IR = ID_EX.IR;
 			EX_MEM.PC = ID_EX.PC;
@@ -855,18 +855,15 @@ void EX() {
 /************************************************************/
 void ID() //step 2
 {
-	printf("\nEntering ID. stall is: %d\n" ,stall);
+	printf("\nEntering ID. stall is: %d\n" ,stall);	
 	if(stall > 0) {
 		ID_EX.stalled = 1;
-		printf("ID did not run, because we need a stall");
+		IF_ID.IR = ID_EX.IR;
+		printf("\nID did not run, because we need a stall");
 		return;
 	}
 	if(stall == 0) {
 		printf("ID stage is executing because stall == 0");
-		uint32_t instruction = ID_EX.IR;
-		ID_EX_rs = (instruction & 0x03E00000) >> 21;
-		ID_EX_rt = (instruction & 0x001F0000) >> 16;
-
 		ID_EX.IR = IF_ID.IR;
 		ID_EX.PC = IF_ID.PC;
 		ID_EX.imm = 0;
@@ -876,6 +873,7 @@ void ID() //step 2
 		ID_EX.RegisterRt = 0;
 		ID_EX.RegisterRd = 0;
 		ID_EX.RegisterRs = 0;
+		ID_EX.mem_access = 0;
 
 		uint8_t opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -888,83 +886,92 @@ void ID() //step 2
 			switch(opcode) {
 				case 0b000000: { //SLL
 					ID_EX.imm = rstruct.shamt;
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000010: { //SRL
 					ID_EX.imm = rstruct.shamt;
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000011: { //SRA
 					//sign extend in the EX() stage I think
 					ID_EX.imm = rstruct.shamt;
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011000: { //MULT
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011001: { //MULTU
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b100000: { //ADD
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100001: { //ADDU
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100010: { //SUB
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100011: { //SUBU
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100100: {//AND
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100101: {//OR
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100110: {//XOR
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b100111: {//NOR
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b101010: {//SLT
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0b011010: { //DIV
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b011011: { //DIVU
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
-					ID_EX.B = CURRENT_STATE.REGS[rstruct.rt];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b010000: { //MFHI
@@ -976,12 +983,12 @@ void ID() //step 2
 					break;
 				}
 				case 0b010001: { //MTHI
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
 					ID_EX.RegWrite=0;
 					break;
 				}
 				case 0b010011: { //MTLO
-					ID_EX.A = CURRENT_STATE.REGS[rstruct.rs];
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
 					ID_EX.RegWrite=0;
 					break;
 				}
@@ -996,14 +1003,16 @@ void ID() //step 2
 		}
 		else { //if opcode is anything else this is an I or J type instruction
 			i_type_struct istruct = parse_i_type(IF_ID.IR);
-			ID_EX.A = CURRENT_STATE.REGS[istruct.rs];
-			ID_EX.B = CURRENT_STATE.REGS[istruct.rt];
+			ID_EX.A = NEXT_STATE.REGS[istruct.rs];
+			ID_EX.B = NEXT_STATE.REGS[istruct.rt];
 			ID_EX.imm = istruct.immediate;
 			ID_EX.RegisterRs = istruct.rs;
 			ID_EX.RegisterRt = istruct.rt;
 			ID_EX.RegisterRd = istruct.rt;
 
 			switch(opcode) {
+				case 0b100011: //LW
+					ID_EX.mem_access = 1;
 				case 0b101000: //SB
 				case 0b101001: //SH
 				case 0b101011: { //SW
@@ -1014,18 +1023,16 @@ void ID() //step 2
 				}
 			}
 		}
-		check_data_hazard();
-		if(stall != 0)
-		{
-			printf("data hazard detected in ID");
-			ID_EX.IR = 0; //Might not need this
-			ID_EX.stalled = 1;
+	check_data_hazard();
+	if(stall != 0)
+	{
+		printf("data hazard detected in ID");
+		ID_EX.stalled = 1;
 
-		}
-		else {
-			ID_EX.stalled = 0;
-		}
-
+	}
+	else {
+		ID_EX.stalled = 0;
+	}
 		if(forwarding == 1) {
 			ID_EX.A = EX_MEM.ALUOutput;
 			forwarding = 0;
@@ -1050,11 +1057,13 @@ void ID() //step 2
 /************************************************************/
 void IF() //step 1
 {
-
 	if(stall == 0) {
 		IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
 		IF_ID.PC = CURRENT_STATE.PC + sizeof(uint32_t); //increment counter
 		NEXT_STATE.PC = IF_ID.PC;
+	}
+	else {
+		printf("\nIF is not running, we are stalled\n");
 	}
 }
 
@@ -1081,6 +1090,8 @@ r_type_struct parse_r_type(uint32_t instruction) {
 /* Check for Hazard                                                                                                   */
 /************************************************************/
 void check_data_hazard() {
+	int reset = ENABLE_FORWARDING;
+	if(EX_MEM.mem_access == 1 || MEM_WB.mem_access == 1) ENABLE_FORWARDING = 0;
 	if((EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0)) && (EX_MEM.RegisterRd == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
 				forwarding = 1;
@@ -1095,34 +1106,34 @@ void check_data_hazard() {
 				stall = 2;
 			}
 		}
-	/*	if((EX_MEM.RegWrite && (EX_MEM.RegisterRt != 0)) && (EX_MEM.RegisterRt == ID_EX.RegisterRs)) {
+		if((EX_MEM.RegWrite && (EX_MEM.RegisterRt != 0)) && (EX_MEM.RegisterRt == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardA = 0x10;
+				forwarding = 1;
 			} else {
 				stall = 2;
 			}
 		}
 		if((EX_MEM.RegWrite && (EX_MEM.RegisterRt != 0)) && (EX_MEM.RegisterRt == ID_EX.RegisterRt)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardB = 0x10;
+				forwarding = 2;
 			} else {
 				stall = 2;
 			}
 		}
 		if((MEM_WB.RegWrite && (MEM_WB.RegisterRt != 0)) && (MEM_WB.RegisterRt == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardA = 0x01;
+				forwarding = 3;
 			} else {
 				stall = 1;
 			}
 		}
 		if((MEM_WB.RegWrite && (MEM_WB.RegisterRt != 0)) && (MEM_WB.RegisterRt == ID_EX.RegisterRt)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardB = 0x01;
+				forwarding = 4;
 			} else {
 				stall = 1;
 			}
-		}*/
+		}
 		if((MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0)) && (MEM_WB.RegisterRd == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
 				forwarding = 3;
@@ -1137,6 +1148,7 @@ void check_data_hazard() {
 				stall = 1;
 			}
 		}
+	ENABLE_FORWARDING = reset;
 
 }
 
@@ -1167,7 +1179,6 @@ void print_program(){
 		print_instruction(addr);
 	}
 }
-
 /************************************************************/
 /* Print the instruction at given memory address (in MIPS assembly format)    */
 /************************************************************/
