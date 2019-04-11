@@ -84,8 +84,6 @@ CPU_Pipeline_Reg MEM_WB;
 
 char prog_file[32];
 
-int ENABLE_FORWARDING;
-
 
 /***************************************************************/
 /* Function Declerations.                                                                                                */

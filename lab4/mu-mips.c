@@ -6,6 +6,20 @@
 
 #include "mu-mips.h"
 
+int ENABLE_FORWARDING = 0;
+int stall = 0;
+uint32_t ID_EX_rs = 0;
+uint32_t ID_EX_rt = 0;
+uint32_t EX_MEM_RegisterRd = 0;
+uint32_t EX_MEM_RegisterRt = 0;
+uint32_t MEM_WB_RegisterRt = 0;
+uint32_t MEM_WB_RegisterRd = 0;
+int EX_MEM_RegWrite = 1;
+int MEM_WB_RegWrite = 1;
+int forwardA = 0;
+int forwardB = 0;
+uint32_t prevInstr = 0;
+
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
 /***************************************************************/
@@ -337,13 +351,13 @@ void handle_pipeline()
 /************************************************************/
 void WB()
 {
-	/*
+	
 	if(MEM_WB.IR == 0)
 	{
 		return;
 	}
-	*/
-	if(MEM_WB.stalled == 0) {
+	
+	//if(MEM_WB.stalled == 0) {
 		INSTRUCTION_COUNT++;
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -503,14 +517,10 @@ void WB()
 				}
 			}
 		}
-	}
-		if(stalled > 0)
-		{
-			stalled--;
-			printf("TEST\n");
-			printf("%d\n", stalled);
-		}
-		printf("TEST1\n");
+	//}
+		if(stall != 0)
+			stall--;
+		//printf("TEST1\n");
 }
 
 /************************************************************/
@@ -534,6 +544,16 @@ void MEM()
 		MEM_WB.RegisterRd = EX_MEM.RegisterRd;
 		MEM_WB.RegisterRs = EX_MEM.RegisterRs;
 		MEM_WB.RegWrite = EX_MEM.RegWrite;
+		MEM_WB.stalled = EX_MEM.stalled;
+
+		uint32_t instruction;
+		instruction = MEM_WB.IR;
+		MEM_WB_RegisterRt = (instruction & 0x001F0000) >> 16;
+		MEM_WB_RegisterRd = (instruction & 0x0000F800) >> 11;
+
+
+		//Testing
+		//MEM_WB.RegisterRd = (MEM_WB.IR & 0x0000F800) >> 11;
 
 		uint8_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 
@@ -607,9 +627,12 @@ void MEM()
 /************************************************************/
 void EX()
 {
+	if(stall == 0)
+	{
+	EX_MEM.stalled = ID_EX.stalled;
 	//if(ID_EX.stalled == 1) 
 		//EX_MEM.stalled = 1;
-	if(ID_EX.stalled == 0) {
+	//if(EX_MEM.stalled == 0) {
 		EX_MEM.IR = ID_EX.IR;
 		EX_MEM.PC = ID_EX.PC;
 		EX_MEM.imm = ID_EX.imm;
@@ -622,6 +645,15 @@ void EX()
 		EX_MEM.RegisterRd = ID_EX.RegisterRd;
 		EX_MEM.RegisterRs = ID_EX.RegisterRs;
 		EX_MEM.RegWrite = ID_EX.RegWrite;
+
+		uint32_t instruction = EX_MEM.IR;
+		EX_MEM_RegisterRd = (instruction & 0x0000F800) >> 11;
+		uint32_t rt = (instruction & 0x001F0000) >> 16;
+		EX_MEM_RegisterRt = rt;
+
+
+		if(EX_MEM.IR == 0)
+			return;
 
 		uint8_t opcode = (EX_MEM.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -796,8 +828,9 @@ void EX()
 					printf("this instruction has not been handled\t");
 				}
 			}
-		}
+		//}
 	}
+}
 }
 
 /************************************************************/
@@ -805,16 +838,15 @@ void EX()
 /************************************************************/
 void ID() //step 2
 {
+
 	
-	if(stalled > 0) {
-		//I don't remember why we had this
-		//ID_EX.stalled = 1;
-		//This should only be done once. Maybe in WB()
-		//stalled--;
-	}
-	
-	else {
-	
+	if(stall == 0) {
+
+		uint32_t instruction = ID_EX.IR;
+		ID_EX_rs = (instruction & 0x03E00000) >> 21;
+		ID_EX_rt = (instruction & 0x001F0000) >> 16;
+
+
 		ID_EX.IR = IF_ID.IR;
 		ID_EX.PC = IF_ID.PC;
 		ID_EX.imm = 0;
@@ -831,7 +863,7 @@ void ID() //step 2
 			r_type_struct rstruct = parse_r_type(IF_ID.IR);
 			ID_EX.RegisterRs = rstruct.rs;
 			ID_EX.RegisterRt = rstruct.rt;
-			ID_EX.RegisterRd = rstruct.rt;
+			ID_EX.RegisterRd = rstruct.rd;
 			ID_EX.RegWrite = 1;
 			switch(opcode) {
 				case 0b000000: { //SLL
@@ -949,7 +981,7 @@ void ID() //step 2
 			ID_EX.imm = istruct.immediate;
 			ID_EX.RegisterRs = istruct.rs;
 			ID_EX.RegisterRt = istruct.rt;
-			ID_EX.RegisterRd = istruct.rt;
+			ID_EX.RegisterRd = 0;
 		
 			switch(opcode) {
 				case 0b101000: //SB
@@ -963,7 +995,7 @@ void ID() //step 2
 			}
 		}
 		check_data_hazard();
-		if(stalled > 0)
+		if(stall != 0)
 		{
 			ID_EX.IR = 0; //Might not need this
 		}	
@@ -975,10 +1007,8 @@ void ID() //step 2
 /************************************************************/
 void IF() //step 1
 {
-	if(stalled > 0) {
-		
-	}
-	else {
+	
+	if(stall == 0) {
 		IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
 		IF_ID.PC = CURRENT_STATE.PC + sizeof(uint32_t); //increment counter
 		NEXT_STATE.PC = IF_ID.PC;
@@ -1007,15 +1037,63 @@ r_type_struct parse_r_type(uint32_t instruction) {
 /************************************************************/
 /* Check for Hazard                                                                                                   */
 /************************************************************/
-void check_data_hazard() {
-	if (EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRs))
-		stalled = 2;
-	if (EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRt))
-		stalled = 2;
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRs))
-		stalled = 1;
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRt))
-		stalled = 1;
+void check_data_hazard() {	
+	if((EX_MEM_RegWrite && (EX_MEM_RegisterRd != 0)) && (EX_MEM_RegisterRd == ID_EX_rs)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardA = 0x10;
+			} else {
+				stall = 2;
+			}
+		}
+		if((EX_MEM_RegWrite && (EX_MEM_RegisterRd != 0)) && (EX_MEM_RegisterRd == ID_EX_rt)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardB = 0x10;
+			} else {
+				stall = 2;
+			}
+		}
+		if((EX_MEM_RegWrite && (EX_MEM_RegisterRt != 0)) && (EX_MEM_RegisterRt == ID_EX_rs)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardA = 0x10;
+			} else {
+				stall = 2;
+			}
+		}
+		if((EX_MEM_RegWrite && (EX_MEM_RegisterRt != 0)) && (EX_MEM_RegisterRt == ID_EX_rt)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardB = 0x10;
+			} else {
+				stall = 2;
+			}
+		}
+		if((MEM_WB_RegWrite && (MEM_WB_RegisterRt != 0)) && (MEM_WB_RegisterRt == ID_EX_rs)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardA = 0x01;
+			} else {
+				stall = 1;
+			}
+		}
+		if((MEM_WB_RegWrite && (MEM_WB_RegisterRt != 0)) && (MEM_WB_RegisterRt == ID_EX_rt)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardB = 0x01;
+			} else {
+				stall = 1;
+			}
+		}
+		if((MEM_WB_RegWrite && (MEM_WB_RegisterRd != 0)) && (MEM_WB_RegisterRd == ID_EX_rs)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardA = 0x01;
+			} else {
+				stall = 1;
+			}
+		}
+		if((MEM_WB_RegWrite && (MEM_WB_RegisterRd != 0)) && (MEM_WB_RegisterRd == ID_EX_rt)) {
+			if(ENABLE_FORWARDING == 1) {
+				forwardB = 0x01;
+			} else {
+				stall = 1;
+			}
+		}
 
 }
 
@@ -1342,7 +1420,7 @@ void print_instruction(uint32_t addr){
 /************************************************************/
 void show_pipeline(){
 	printf("\nCurrent PC: %x\n", CURRENT_STATE.PC);
-	printf("Stalled cycles: %x\n\n", stalled);
+	printf("Stalled cycles: %x\n\n", stall);
 	
 	printf("IF/ID.IR: %x\n", IF_ID.IR);
 	printf("IF/ID.PC: %x\n", IF_ID.PC);
@@ -1356,6 +1434,7 @@ void show_pipeline(){
 	printf("ID_EX.RegisterRs: %x\n", ID_EX.RegisterRs);
 	printf("ID_EX.RegisterRt: %x\n", ID_EX.RegisterRt);
 	printf("ID_EX.RegisterRd: %x\n\n", ID_EX.RegisterRd);
+	printf("ID_EX.stalled: %x\n\n", ID_EX.stalled);
 
 	printf("EX/MEM.IR: %x\n", EX_MEM.IR);
 	printf("EX/MEM.ALUOutput: %x\n", EX_MEM.ALUOutput);
