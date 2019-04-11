@@ -16,7 +16,7 @@ uint32_t MEM_WB_RegisterRt = 0;
 uint32_t MEM_WB_RegisterRd = 0;
 int EX_MEM_RegWrite = 1;
 int MEM_WB_RegWrite = 1;
-int forwardA = 0;
+int forwarding = 0;
 int forwardB = 0;
 uint32_t prevInstr = 0;
 
@@ -1025,6 +1025,23 @@ void ID() //step 2
 		else {
 			ID_EX.stalled = 0;
 		}
+
+		if(forwarding == 1) {
+			ID_EX.A = EX_MEM.ALUOutput;
+			forwarding = 0;
+		}
+		if(forwarding == 2) {
+			ID_EX.B = EX_MEM.ALUOutput;
+			forwarding = 0;
+		}
+		if(forwarding == 2) {
+			ID_EX.A = MEM_WB.LMD;
+			forwarding = 0;
+		}
+		if(forwarding == 2) {
+			ID_EX.B = MEM_WB.LMD;
+			forwarding = 0;
+		}
 	}
 }
 
@@ -1066,14 +1083,14 @@ r_type_struct parse_r_type(uint32_t instruction) {
 void check_data_hazard() {
 	if((EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0)) && (EX_MEM.RegisterRd == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardA = 0x10;
+				forwarding = 1;
 			} else {
 				stall = 2;
 			}
 		}
 		if((EX_MEM.RegWrite && (EX_MEM.RegisterRd != 0)) && (EX_MEM.RegisterRd == ID_EX.RegisterRt)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardB = 0x10;
+				forwarding = 2;
 			} else {
 				stall = 2;
 			}
@@ -1108,14 +1125,14 @@ void check_data_hazard() {
 		}*/
 		if((MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0)) && (MEM_WB.RegisterRd == ID_EX.RegisterRs)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardA = 0x01;
+				forwarding = 3;
 			} else {
 				stall = 1;
 			}
 		}
 		if((MEM_WB.RegWrite && (MEM_WB.RegisterRd != 0)) && (MEM_WB.RegisterRd == ID_EX.RegisterRt)) {
 			if(ENABLE_FORWARDING == 1) {
-				forwardB = 0x01;
+				forwarding = 4;
 			} else {
 				stall = 1;
 			}
