@@ -6,7 +6,7 @@
 /******************************************************************************/
 /* MIPS memory layout                                                                                                                                      */
 /******************************************************************************/
-#define MEM_TEXT_BEGIN  0x00400000
+#define MEM_TEXT_BEGIN    0x00400000
 #define MEM_TEXT_END      0x0FFFFFFF
 /*Memory address 0x10000000 to 0x1000FFFF access by $gp*/
 #define MEM_DATA_BEGIN  0x10010000
@@ -130,4 +130,3 @@ i_type_struct parse_i_type(uint32_t instruction);
 r_type_struct parse_r_type(uint32_t instruction);
 j_type_struct parse_j_type(uint32_t instruction);
 void check_data_hazard();
-

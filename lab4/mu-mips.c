@@ -615,6 +615,7 @@ void MEM() {
 					break;
 				}
 				case 0b101011: { //SW
+					printf("\n ALUOutput is %d",EX_MEM.ALUOutput);
 					mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
 					break;
 				}
