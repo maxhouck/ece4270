@@ -1206,6 +1206,12 @@ r_type_struct parse_r_type(uint32_t instruction) {
 	return rstruct;
 }
 
+j_type_struct parse_j_type(uint32_t instruction) {
+	j_type_struct jstruct;
+	jstruct.target = (instruction & 0x3FFFFFF);
+	return jstruct;
+}
+
 /************************************************************/
 /* Check for Hazard                                                                                                   */
 /************************************************************/
@@ -1448,7 +1454,7 @@ void print_instruction(uint32_t addr){
 				r_type_struct rstruct = parse_r_type(instruction);
 
 				printf("JALR $%d\n", rstruct.rs);
-				printf("JALR $%d, $%d", rstruct.rd, rstruct.rs);
+				printf("		JALR $%d, $%d\n", rstruct.rd, rstruct.rs);
 				break;
 			}
 			case 0x0C: { //SYSTEMCALL
@@ -1580,9 +1586,18 @@ void print_instruction(uint32_t addr){
 				printf("BGTZ $%d, %x\n", istruct.rs, istruct.immediate);
 				break;
 			}
+			case 0b000010: { //J 000010
+				j_type_struct jstruct = parse_j_type(instruction);
 
+				printf("J %x\n", jstruct.target);
+				break;
+			}
+			case 0b000011: { //JAL 000011
+				j_type_struct jstruct = parse_j_type(instruction);
 
-
+				printf("JAL %x\n", jstruct.target);
+				break;
+			}
 			default: {
 				printf("this instruction has not been handled\n");
 			}
