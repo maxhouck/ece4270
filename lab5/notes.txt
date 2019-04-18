@@ -1,0 +1,1 @@
+instructions to add: BEQ BNE BLEZ BLTZ BGEZ BGTZ J JR JAL JALR
