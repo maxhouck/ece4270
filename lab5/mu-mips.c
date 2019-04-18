@@ -19,6 +19,7 @@ int MEM_WB_RegWrite = 1;
 int forwarding = 0;
 int forwardB = 0;
 uint32_t prevInstr = 0;
+int flush = 0;
 
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
@@ -212,7 +213,7 @@ void handle_command() {
 			}else if(buffer[1] == 'e' || buffer[1] == 'E'){
 				reset();
 			}
-			else {
+			else {LR $31, $30[0x4000c4]	NOR $22, $7, 
 				if (scanf("%d", &cycles) != 1) {
 					break;
 				}
@@ -341,8 +342,17 @@ void handle_pipeline()
 	WB();
 	MEM();
 	EX();
-	ID();
-	IF();
+	if(flush) {
+		stall = 1; //stall ID stage 1 more time
+		ID();
+		stall = 0;
+		CURRENT_STATE.PC = MEM_WB.ALUOutput; //change PC
+		IF(); 
+	}
+	else {
+		ID();	
+		IF();
+	}
 }
 
 /************************************************************/
@@ -556,6 +566,7 @@ void MEM() {
 		MEM_WB.RegisterRs = EX_MEM.RegisterRs;
 		MEM_WB.RegWrite = EX_MEM.RegWrite;
 		MEM_WB.stalled = EX_MEM.stalled;
+		MEM_WB.jump_branch = EX_MEM.jump_branch;
 
 		uint32_t instruction;
 		instruction = MEM_WB.IR;
@@ -645,6 +656,7 @@ void EX() {
 		EX_MEM.RegisterRd = 0;
 		EX_MEM.RegisterRs = 0;
 		EX_MEM.RegWrite = 0;
+		EX_MEM.jump_branch = 0;
 		printf("\nEX did not run, it is stalled");
 	}
 	if(ID_EX.stalled == 0)	{
@@ -663,6 +675,7 @@ void EX() {
 			EX_MEM.RegisterRd = ID_EX.RegisterRd;
 			EX_MEM.RegisterRs = ID_EX.RegisterRs;
 			EX_MEM.RegWrite = ID_EX.RegWrite;
+			EX_MEM.jump_branch = ID_EX.jump_branch;
 
 			uint32_t instruction = EX_MEM.IR;
 			EX_MEM_RegisterRd = (instruction & 0x0000F800) >> 11;
@@ -847,10 +860,70 @@ void EX() {
 							if(EX_MEM.imm >> 15) {	// then negative number
 								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 							}
-							uint32_t offset = EX_MEM.imm << 2
+							uint32_t offset = EX_MEM.imm << 2;
 							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							flush = 1;
 						}
-						else //dont branch
+						//else //dont branch
+						break;
+					case 0b000101: //BNE
+						if (EX_MEM.A != EX_MEM.B) { //take branch
+							if(EX_MEM.imm >> 15) {	// then negative number
+								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+							}
+							uint32_t offset = EX_MEM.imm << 2;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							flush = 1;
+						}
+						//else //dont branch
+						break;
+					case 0b000110: //BLEZ
+						if (EX_MEM.A >> 15 || EX_MEM.A == 0) { //take branch
+							if(EX_MEM.imm >> 15) {	// then negative number
+								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+							}
+							uint32_t offset = EX_MEM.imm << 2;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							flush = 1;
+						}
+						//else //dont branch
+						break;
+					case 0b000001: //REGIMM
+						if(EX_MEM.RegisterRt == 00001) { //BGEZ
+							if (!(EX_MEM.A >> 15) || EX_MEM.A == 0) { //take branch
+								if(EX_MEM.imm >> 15) {	// then negative number
+									EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+								}
+								uint32_t offset = EX_MEM.imm << 2;
+								EX_MEM.ALUOutput = EX_MEM.PC + offset;
+								flush = 1;
+							}
+							//else //dont branch
+						}
+						if(EX_MEM.RegisterRt == 00000) { //BLTZ
+							if (!(EX_MEM.A >> 15)) { //take branch
+								if(EX_MEM.imm >> 15) {	// then negative number
+									EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+								}
+								uint32_t offset = EX_MEM.imm << 2;
+								EX_MEM.ALUOutput = EX_MEM.PC + offset;
+								flush = 1;
+							}
+							//else //dont branch
+						}
+						break;
+					case 0b000111: //BGTZ
+						if ((EX_MEM.A >> 15)==0) { //take branch
+							if(EX_MEM.imm >> 15) {	// then negative number
+								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
+							}
+							uint32_t offset = EX_MEM.imm << 2;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							flush = 1;
+						}
+						//else //dont branch
+						break;
+					
 					default: {
 						printf("this instruction has not been handled\t");
 					}
@@ -883,6 +956,7 @@ void ID() //step 2
 		ID_EX.RegisterRd = 0;
 		ID_EX.RegisterRs = 0;
 		ID_EX.mem_access = 0;
+		ID_EX.jump_branch = 0;
 
 		uint8_t opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if(opcode == 0) { //if opcode is 0, then this is an R type instruction
@@ -1020,6 +1094,7 @@ void ID() //step 2
 			ID_EX.RegisterRd = istruct.rt;
 
 			switch(opcode) {
+				
 				case 0b100000: //lb
 				case 0b100001: //lh
 				case 0b100011: //LW
@@ -1033,6 +1108,10 @@ void ID() //step 2
 					ID_EX.RegWrite = 0;
 					break;
 				case 0b000100: //BEQ
+				case 0b000101: //BNE
+				case 0b000110: //BLEZ
+				case 0b000001: //REGIMM
+					ID_EX.jump_branch = 1;
 				default:
 					ID_EX.RegWrite = 1;
 			}
@@ -1162,6 +1241,8 @@ void check_data_hazard() {
 				stall = 1;
 			}
 		}
+		if(EX_MEM.jump_branch)
+			stall = 1;
 	ENABLE_FORWARDING = reset;
 
 }
