@@ -346,7 +346,7 @@ void handle_pipeline()
 		stall = 1; //stall ID stage 1 more time
 		ID();
 		stall = 0;
-		CURRENT_STATE.PC = MEM_WB.ALUOutput; //change PC
+		CURRENT_STATE.PC = EX_MEM.ALUOutput; //change PC
 		IF(); 
 	}
 	else {
@@ -1142,6 +1142,7 @@ void ID() //step 2
 				case 0b000110: //BLEZ
 				case 0b000001: //REGIMM
 					ID_EX.jump_branch = 1;
+					break;
 				case 0b000010: //J
 				case 0b000011: //JAL
 					ID_EX.jump_branch = 1;
