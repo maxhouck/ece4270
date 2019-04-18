@@ -1206,12 +1206,6 @@ r_type_struct parse_r_type(uint32_t instruction) {
 	return rstruct;
 }
 
-j_type_struct parse_j_type(uint32_t instruction) {
-	j_type_struct jstruct;
-	jstruct.target = (instruction & 0x3FFFFFF);
-	return jstruct;
-}
-
 /************************************************************/
 /* Check for Hazard                                                                                                   */
 /************************************************************/
@@ -1307,6 +1301,7 @@ void print_program(){
 		print_instruction(addr);
 	}
 }
+
 /************************************************************/
 /* Print the instruction at given memory address (in MIPS assembly format)    */
 /************************************************************/
