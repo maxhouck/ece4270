@@ -122,6 +122,7 @@ r_type_struct parse_r_type(uint32_t instruction);
 typedef struct i_type_structure {
   uint16_t immediate, offset; //these will be the same value, just renamed it for use with load commands
   uint8_t rs, rt, base;
+  uint32_t target;
 } i_type_struct;
 
 typedef struct j_type_structure {

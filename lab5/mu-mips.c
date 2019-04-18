@@ -213,7 +213,7 @@ void handle_command() {
 			}else if(buffer[1] == 'e' || buffer[1] == 'E'){
 				reset();
 			}
-			else {LR $31, $30[0x4000c4]	NOR $22, $7, 
+			else {
 				if (scanf("%d", &cycles) != 1) {
 					break;
 				}
@@ -792,6 +792,16 @@ void EX() {
 						EX_MEM.ALUOutput = EX_MEM.A;
 						break;
 					}
+					case 0b001000: { //JR
+						flush = 1;
+						ID_EX.ALUOutput = ID_EX.A;
+						break;
+					}
+					case 0b001001: { //JALR
+						flush = 1;
+						ID_EX.ALUOutput = ID_EX.A;
+						break;
+					}
 					case 0x0C: { //SYSTEMCALL
 						break;
 					}
@@ -923,7 +933,11 @@ void EX() {
 						}
 						//else //dont branch
 						break;
-					
+					case 0b000010: //J
+					case 0b000011: //JAL
+						flush=1;
+						EX_MEM.ALUOutput = EX_MEM.imm << 2;
+						break;
 					default: {
 						printf("this instruction has not been handled\t");
 					}
@@ -1075,6 +1089,14 @@ void ID() //step 2
 					ID_EX.RegWrite=0;
 					break;
 				}
+				case 0b001000: { //JR
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					break;
+				}
+				case 0b001001: { //JALR
+					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					break;
+				}
 				case 0x0C: { //SYSTEMCALL
 					break;
 				}
@@ -1112,6 +1134,10 @@ void ID() //step 2
 				case 0b000110: //BLEZ
 				case 0b000001: //REGIMM
 					ID_EX.jump_branch = 1;
+				case 0b000010: //J
+				case 0b000011: //JAL
+					ID_EX.jump_branch = 1;
+					ID_EX.imm = istruct.target;
 				default:
 					ID_EX.RegWrite = 1;
 			}
@@ -1167,6 +1193,7 @@ i_type_struct parse_i_type(uint32_t instruction) {
 	istruct.rs = (instruction & 0x03E00000) >> 21;
 	istruct.offset = istruct.immediate;
 	istruct.base = istruct.rs;
+	istruct.target = instruction & 0x03FFFFFF;
 	return istruct;
 }
 
