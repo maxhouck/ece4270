@@ -456,6 +456,10 @@ void WB()
 					NEXT_STATE.LO = MEM_WB.ALUOutput;
 					break;
 				}
+				case 0b001001: { //JALR
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = CURRENT_STATE.PC+4;
+					break;
+				}
 				case 0x0C: { //SYSTEMCALL
 					if(NEXT_STATE.REGS[2] == 0xA)
 					{
@@ -520,6 +524,9 @@ void WB()
 				}
 				case 0b101011: { //SW
 					break;
+				}
+				case 0b000011: { //JAL
+					NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
 				}
 				default: {
 					printf("this instruction has not been handled\t");
@@ -1095,6 +1102,7 @@ void ID() //step 2
 				}
 				case 0b001001: { //JALR
 					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					ID_EX.RegisterRd = rstruct.rd;
 					break;
 				}
 				case 0x0C: { //SYSTEMCALL
