@@ -348,6 +348,7 @@ void handle_pipeline()
 		stall = 0;
 		CURRENT_STATE.PC = EX_MEM.ALUOutput; //change PC
 		IF(); 
+		flush = flush - 1;
 	}
 	else {
 		ID();	
@@ -801,12 +802,12 @@ void EX() {
 					}
 					case 0b001000: { //JR
 						flush = 1;
-						ID_EX.ALUOutput = ID_EX.A;
+						EX_MEM.ALUOutput = ID_EX.A;
 						break;
 					}
 					case 0b001001: { //JALR
 						flush = 1;
-						ID_EX.ALUOutput = ID_EX.A;
+						EX_MEM.ALUOutput = ID_EX.A;
 						break;
 					}
 					case 0x0C: { //SYSTEMCALL
@@ -941,6 +942,9 @@ void EX() {
 						//else //dont branch
 						break;
 					case 0b000010: //J
+						flush=1;
+						EX_MEM.ALUOutput = EX_MEM.imm << 2;
+						break;
 					case 0b000011: //JAL
 						flush=1;
 						EX_MEM.ALUOutput = EX_MEM.imm << 2;
@@ -1098,11 +1102,15 @@ void ID() //step 2
 				}
 				case 0b001000: { //JR
 					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
+					//stall = 1;
+					IF_ID.stalled = 1;
 					break;
 				}
 				case 0b001001: { //JALR
 					ID_EX.A = NEXT_STATE.REGS[rstruct.rs];
 					ID_EX.RegisterRd = rstruct.rd;
+					//stall = 1;
+					IF_ID.stalled = 1;
 					break;
 				}
 				case 0x0C: { //SYSTEMCALL
@@ -1138,15 +1146,39 @@ void ID() //step 2
 					ID_EX.RegWrite = 0;
 					break;
 				case 0b000100: //BEQ
+					//stall = 1;
+					IF_ID.stalled = 1;
+					break;
 				case 0b000101: //BNE
+					//stall = 1;
+					IF_ID.stalled = 1;
+					break;
 				case 0b000110: //BLEZ
+					//stall = 1;
+					IF_ID.stalled = 1;
+					break;
 				case 0b000001: //REGIMM
 					ID_EX.jump_branch = 1;
+					//stall = 1;
+					IF_ID.stalled = 1;
+					break;
+				case 0b000111: //BGTZ
+					ID_EX.RegWrite = 1;
+					//stall = 1;
+					IF_ID.stalled = 1;
 					break;
 				case 0b000010: //J
+					//stall = 1;
+					ID_EX.jump_branch = 1;
+					ID_EX.imm = istruct.target;
+					IF_ID.stalled = 1;
+					break;
 				case 0b000011: //JAL
 					ID_EX.jump_branch = 1;
 					ID_EX.imm = istruct.target;
+					//stall = 1;
+					IF_ID.stalled = 1;
+					break;
 				default:
 					ID_EX.RegWrite = 1;
 			}
@@ -1624,7 +1656,8 @@ void show_pipeline(){
 
 	printf("IF/ID.IR: %x\n", IF_ID.IR);
 	printf("IF/ID.PC: %x\n", IF_ID.PC);
-	printf("IF/ID.RegWrite: %x\n\n", IF_ID.RegWrite);
+	printf("IF/ID.RegWrite: %x\n", IF_ID.RegWrite);
+	printf("IF/ID.stalled: %x\n\n", IF_ID.stalled);
 
 	printf("ID/EX.IR: %x\n", ID_EX.IR);
 	printf("ID/EX.A: %x\n", ID_EX.A);
