@@ -346,7 +346,7 @@ void handle_pipeline()
 		stall = 1; //stall ID stage 1 more time
 		ID();
 		stall = 0;
-		CURRENT_STATE.PC = EX_MEM.ALUOutput - 4; //change PC
+		CURRENT_STATE.PC = EX_MEM.ALUOutput; //change PC
 		IF(); 
 		flush = flush - 1;
 	}
@@ -879,7 +879,7 @@ void EX() {
 								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 							}
 							uint32_t offset = EX_MEM.imm << 2;
-							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 							flush = 1;
 						}
 						//else //dont branch
@@ -890,7 +890,7 @@ void EX() {
 								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 							}
 							uint32_t offset = EX_MEM.imm << 2;
-							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 							flush = 1;
 						}
 						//else //dont branch
@@ -901,7 +901,7 @@ void EX() {
 								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 							}
 							uint32_t offset = EX_MEM.imm << 2;
-							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 							flush = 1;
 						}
 						//else //dont branch
@@ -913,7 +913,7 @@ void EX() {
 									EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 								}
 								uint32_t offset = EX_MEM.imm << 2;
-								EX_MEM.ALUOutput = EX_MEM.PC + offset;
+								EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 								flush = 1;
 							}
 							//else //dont branch
@@ -924,7 +924,7 @@ void EX() {
 									EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 								}
 								uint32_t offset = EX_MEM.imm << 2;
-								EX_MEM.ALUOutput = EX_MEM.PC + offset;
+								EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 								flush = 1;
 							}
 							//else //dont branch
@@ -936,7 +936,7 @@ void EX() {
 								EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 							}
 							uint32_t offset = EX_MEM.imm << 2;
-							EX_MEM.ALUOutput = EX_MEM.PC + offset;
+							EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
 							flush = 1;
 						}
 						//else //dont branch
