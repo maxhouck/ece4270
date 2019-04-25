@@ -346,7 +346,7 @@ void handle_pipeline()
 		stall = 1; //stall ID stage 1 more time
 		ID();
 		stall = 0;
-		CURRENT_STATE.PC = EX_MEM.ALUOutput; //change PC
+		CURRENT_STATE.PC = EX_MEM.ALUOutput - 4; //change PC
 		IF(); 
 		flush = flush - 1;
 	}
@@ -994,17 +994,20 @@ void ID() //step 2
 			switch(opcode) {
 				case 0b000000: { //SLL
 					ID_EX.imm = rstruct.shamt;
+          ID_EX.RegisterRd = rstruct.rd;    
 					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000010: { //SRL
 					ID_EX.imm = rstruct.shamt;
+          ID_EX.RegisterRd = rstruct.rd;
 					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
 				case 0b000011: { //SRA
 					//sign extend in the EX() stage I think
 					ID_EX.imm = rstruct.shamt;
+          ID_EX.RegisterRd = rstruct.rd;
 					ID_EX.B = NEXT_STATE.REGS[rstruct.rt];
 					break;
 				}
