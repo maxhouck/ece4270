@@ -442,11 +442,11 @@ void WB()
 					break;
 				}
 				case 0b010000: { //MFHI
-					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.HI;
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = CURRENT_STATE.HI;
 					break;
 				}
 				case 0b010010: { //MFLO
-					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.LO;
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = CURRENT_STATE.LO;
 					break;
 				}
 				case 0b010001: { //MTHI
@@ -458,7 +458,7 @@ void WB()
 					break;
 				}
 				case 0b001001: { //JALR
-					NEXT_STATE.REGS[MEM_WB.RegisterRd] = CURRENT_STATE.PC+4;
+					NEXT_STATE.REGS[MEM_WB.RegisterRd] = MEM_WB.LMD;
 					break;
 				}
 				case 0x0C: { //SYSTEMCALL
@@ -566,7 +566,7 @@ void MEM() {
 		MEM_WB.A = EX_MEM.A;
 		MEM_WB.B = EX_MEM.B;
 		MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-		MEM_WB.LMD = 0;
+		MEM_WB.LMD = EX_MEM.LMD;
 		MEM_WB.HI = EX_MEM.HI;
 		MEM_WB.LO = EX_MEM.LO;
 		MEM_WB.RegisterRt = EX_MEM.RegisterRt;
@@ -808,6 +808,7 @@ void EX() {
 					case 0b001001: { //JALR
 						flush = 1;
 						EX_MEM.ALUOutput = ID_EX.A;
+						EX_MEM.LMD = CURRENT_STATE.PC+4;
 						break;
 					}
 					case 0x0C: { //SYSTEMCALL
@@ -919,7 +920,7 @@ void EX() {
 							//else //dont branch
 						}
 						if(EX_MEM.RegisterRt == 00000) { //BLTZ
-							if (!(EX_MEM.A >> 15)) { //take branch
+							if ((EX_MEM.A >> 15)) { //take branch
 								if(EX_MEM.imm >> 15) {	// then negative number
 									EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm; //sign extend with 1's
 								}
@@ -943,11 +944,11 @@ void EX() {
 						break;
 					case 0b000010: //J
 						flush=1;
-						EX_MEM.ALUOutput = EX_MEM.imm << 2;
+						EX_MEM.ALUOutput = (EX_MEM.imm << 2);
 						break;
 					case 0b000011: //JAL
 						flush=1;
-						EX_MEM.ALUOutput = EX_MEM.imm << 2;
+						EX_MEM.ALUOutput = (EX_MEM.imm << 2);
 						break;
 					default: {
 						printf("this instruction has not been handled\t");
