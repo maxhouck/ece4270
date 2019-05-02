@@ -497,7 +497,7 @@ uint32_t parse_instruction(char* line)
 
 		immediate = limitBits(immediate, 16);
 
-		machine_instruction = (0b001110 << 26) | machine_instruction;
+		machine_instruction = (0b001111 << 26) | machine_instruction;
 		machine_instruction = (rt << 16) | machine_instruction;
 		machine_instruction = immediate | machine_instruction;
 	}
