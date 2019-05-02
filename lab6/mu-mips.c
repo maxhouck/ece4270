@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include "mu-cache.h"
 #include "mu-mips.h"
 
 int ENABLE_FORWARDING = 0;
@@ -20,6 +21,10 @@ int forwarding = 0;
 int forwardB = 0;
 uint32_t prevInstr = 0;
 int flush = 0;
+uint32_t cache_misses=0; //need to initialize to 0 at the beginning of simulation start
+uint32_t cache_hits=0;   //need to initialize to 0 at the beginning of simulation start
+uint32_t CACHE_MISS_FLAG=0;
+
 
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
@@ -168,6 +173,8 @@ void rdump() {
 	printf("-------------------------------------\n");
 	printf("# Instructions Executed\t: %u\n", INSTRUCTION_COUNT);
 	printf("# Cycles Executed\t: %u\n", CYCLE_COUNT);
+	printf("# Cache misses\t: %u\n", cache_misses);
+	printf("# Cache hits\t: %u\n", cache_hits);
 	printf("PC\t: 0x%08x\n", CURRENT_STATE.PC);
 	printf("-------------------------------------\n");
 	printf("[Register]\t[Value]\n");
@@ -620,11 +627,34 @@ void MEM() {
 		else { //if opcode is anything else this is an I or J type instruction
 			switch(opcode) {
 				case 0b100000: { //LB
-					uint32_t byte = 0xFF & mem_read_32(EX_MEM.ALUOutput);
-					if(byte >> 7) {	// then negative number
-						byte = (0xFFFFFF00 | byte); //sign extend with 1's
+					uint32_t block_address = (EX_MEM.ALUOutput / (4*4)) % 16;
+					//printf("\n");
+					//printf(block_address);
+					//printf("\n");
+					if(!L1Cache.blocks[block_address].valid) {
+						CACHE_MISS_FLAG = 1;
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
 					}
-					MEM_WB.LMD = byte;
+					else if(L1Cache.blocks[block_address].tag != (EX_MEM.ALUOutput >> 8)) {
+						CACHE_MISS_FLAG = 1;
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
+					}
+					else cache_hits++;
+					uint8_t offset = EX_MEM.ALUOutput & 0xFF;
+					uint32_t word = L1Cache.blocks[block_address].words[(offset>>2) & 0b11];
+					MEM_WB.LMD = (word >> ((offset & 0b11)*8) & 0xFF);
 					break;
 				}
 				case 0b100001: { //LH
@@ -636,8 +666,37 @@ void MEM() {
 					break;
 				}
 				case 0b100011: { //LW
-					uint32_t word = mem_read_32(EX_MEM.ALUOutput);
+					uint32_t block_address = (EX_MEM.ALUOutput / (4*4)) % 16;
+					//printf("\n");
+					//printf(block_address);
+					//printf("\n");
+					printf("\n%d\n valid",L1Cache.blocks[block_address].valid);
+					if(!L1Cache.blocks[block_address].valid) {
+						CACHE_MISS_FLAG = 1;
+						printf("yay");
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
+					}
+					else if(L1Cache.blocks[block_address].tag != (EX_MEM.ALUOutput >> 8)) {
+						CACHE_MISS_FLAG = 1;
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
+					}
+					else cache_hits++;
+					uint8_t offset = EX_MEM.ALUOutput & 0xFF;
+					uint32_t word = L1Cache.blocks[block_address].words[(offset>>2) & 0b11];
 					MEM_WB.LMD = word;
+					printf("\n%d\nblockaddress",block_address);
 					break;
 				}
 				case 0b101000: { //SB
@@ -649,8 +708,40 @@ void MEM() {
 					break;
 				}
 				case 0b101011: { //SW
-					printf("\n ALUOutput is %d",EX_MEM.ALUOutput);
-					mem_write_32(EX_MEM.ALUOutput,EX_MEM.B);
+					
+					uint32_t block_address = (EX_MEM.ALUOutput / (4*4)) % 16;
+					//printf("\n");
+					//printf(block_address);
+					//printf("\n");
+					if(!L1Cache.blocks[block_address].valid) {
+						CACHE_MISS_FLAG = 1;
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
+					}
+					else if(L1Cache.blocks[block_address].tag != (EX_MEM.ALUOutput >> 8)) {
+						CACHE_MISS_FLAG = 1;
+						cache_misses++;
+						L1Cache.blocks[block_address].valid = 1;
+						L1Cache.blocks[block_address].tag = EX_MEM.ALUOutput >> 8;
+						L1Cache.blocks[block_address].words[0] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2));
+						L1Cache.blocks[block_address].words[1] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2));
+						L1Cache.blocks[block_address].words[2] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2));
+						L1Cache.blocks[block_address].words[3] = mem_read_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2));
+					}
+					else cache_hits++;
+					//update block in cache
+					uint8_t offset = EX_MEM.ALUOutput & 0xFF;
+					MEM_WB.LMD = word;
+					L1Cache.blocks[block_address].word[(offset>>2) & 0b11] = EX_MEM.B
+					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2),L1Cache.blocks[block_address].words[0]);
+					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2),L1Cache.blocks[block_address].words[1]);
+					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2),L1Cache.blocks[block_address].words[2]);
+					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(3<<2),L1Cache.blocks[block_address].words[3]);
 					break;
 				}
 				default: {
@@ -660,6 +751,10 @@ void MEM() {
 			}
 		}
 	//}
+}
+
+void cache_miss(uint32_t address) {
+	cache_misses++;
 }
 
 /************************************************************/
@@ -931,7 +1026,7 @@ void EX() {
 								}
 								uint32_t offset = EX_MEM.imm << 2;
 								EX_MEM.ALUOutput = EX_MEM.PC + offset - 4;
-								flush = 1;
+								flush =1;
 							}
 							//else //dont branch
 						}

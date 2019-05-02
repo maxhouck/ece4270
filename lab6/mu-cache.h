@@ -25,13 +25,14 @@ typedef struct Cache_Struct {
 /***************************************************************/
 /* CACHE STATS                                                 */
 /***************************************************************/
-uint32_t cache_misses; //need to initialize to 0 at the beginning of simulation start
-uint32_t cache_hits;   //need to initialize to 0 at the beginning of simulation start
-uint32_t CACHE_MISS_FLAG;
+
 
 
 /***************************************************************/
 /* CACHE OBJECT                                                */
 /***************************************************************/
 Cache L1Cache; //need to use this in the simulator
+void cache_miss();
+void cache_hit();
+
 
