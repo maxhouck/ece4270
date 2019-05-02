@@ -101,12 +101,28 @@ void run(int num_cycles) {
 
 	printf("Running simulator for %d cycles...\n\n", num_cycles);
 	int i;
+	int j = 0;
 	for (i = 0; i < num_cycles; i++) {
-		if (RUN_FLAG == FALSE) {
-			printf("Simulation Stopped.\n\n");
-			break;
+		if(CACHE_MISS_FLAG == 1)
+		{
+			if(j < 100)
+			{
+				j++;
+				CYCLE_COUNT++;
+			}
+			else
+			{
+				CACHE_MISS_FLAG = 0;
+			}
 		}
-		cycle();
+		else
+		{
+			if (RUN_FLAG == FALSE) {
+				printf("Simulation Stopped.\n\n");
+				break;
+			}
+			cycle();
+		}
 	}
 }
 
