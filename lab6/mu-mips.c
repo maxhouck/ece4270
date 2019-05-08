@@ -207,8 +207,9 @@ void cdump()
 	
 	for(i=0;i<16;i++)
 	{
-		//do stuff
+		printf("[%d]\t%x\t\t0x%08x\t0x%08x\t0x%08x\t0x%08x\n", i, L1Cache.blocks[i].tag, L1Cache.blocks[i].words[0], L1Cache.blocks[i].words[1], L1Cache.blocks[i].words[2], L1Cache.blocks[i].words[3]);
 	}
+	printf("-------------------------------------\n");
 }
 
 /***************************************************************/
