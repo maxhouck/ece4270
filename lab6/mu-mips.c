@@ -188,6 +188,29 @@ void rdump() {
 	printf("-------------------------------------\n");
 }
 
+void cdump()
+{
+	int i;
+	double percent;
+
+	percent = ((double)cache_hits/((double)cache_hits + (double)cache_misses))*100;
+
+	printf("-------------------------------------\n");
+	printf("Dumping Register Content\n");
+	printf("-------------------------------------\n");
+	printf("Cache Hits\t: %u\n", cache_hits);
+	printf("Cache Misses\t: %u\n", cache_misses);
+	printf("Cache Hit Percentage\t: %0.2f\n", percent);
+	printf("-------------------------------------\n");
+
+	printf("Block\tTag\t\tWord 1\t\tWord 2\t\tWord 3\t\tWord 4\n");
+	
+	for(i=0;i<16;i++)
+	{
+		//do stuff
+	}
+}
+
 /***************************************************************/
 /* Read a command from standard input.                                                               */
 /***************************************************************/
@@ -277,6 +300,10 @@ void handle_command() {
 			break;
 			}
 			ENABLE_FORWARDING == 0 ? printf("Forwarding OFF\n") : printf("Forwarding ON\n");
+			break;
+		case 'C':
+		case 'c':
+			cdump();
 			break;
 		default:
 			printf("Invalid Command.\n");
