@@ -736,8 +736,9 @@ void MEM() {
 					else cache_hits++;
 					//update block in cache
 					uint8_t offset = EX_MEM.ALUOutput & 0xFF;
+					uint32_t word = L1Cache.blocks[block_address].words[(offset>>2) & 0b11];
 					MEM_WB.LMD = word;
-					L1Cache.blocks[block_address].word[(offset>>2) & 0b11] = EX_MEM.B
+					L1Cache.blocks[block_address].words[(offset>>2) & 0b11] = EX_MEM.B;
 					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(0<<2),L1Cache.blocks[block_address].words[0]);
 					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(1<<2),L1Cache.blocks[block_address].words[1]);
 					mem_write_32((EX_MEM.ALUOutput & 0xFFFFFFF0)+(2<<2),L1Cache.blocks[block_address].words[2]);
